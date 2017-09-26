@@ -16,17 +16,17 @@ public class BallIntake extends Subsystem{
 	
 	public BallIntake(){
 		intakeMotor = new CANTalon(Ports.BALL_INTAKE);
-		intakeMotor.EnableCurrentLimit(true);
 		intakeMotor.setCurrentLimit(30);
+		intakeMotor.EnableCurrentLimit(true);
 		intakeMotor.changeControlMode(TalonControlMode.PercentVbus);
 	}
 	
 	public void forward(){
-		intakeMotor.set(0.7);
+		intakeMotor.set(1.0);
 	}
 	
 	public void reverse(){
-		intakeMotor.set(-0.7);
+		intakeMotor.set(-1.0);
 	}
 	
 	@Override

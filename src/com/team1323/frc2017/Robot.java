@@ -133,7 +133,7 @@ public class Robot extends IterativeRobot {
 			driverJoystick.update();
 			coDriver.update();
 			
-			robot.drive.setOpenLoop(cheesyDriveHelper.cheesyDrive(-driverJoystick.getYAxis(), wheel.getWheelTurn(), wheel.leftBumper.isBeingPressed()));
+			robot.drive.setOpenLoop(cheesyDriveHelper.cheesyDrive(-driverJoystick.getYAxis(), wheel.getWheelTurn(), wheel.leftBumper.isBeingPressed(), true));
 			
 			
 			if(coDriver.rightBumper.wasPressed()){
@@ -145,6 +145,8 @@ public class Robot extends IterativeRobot {
 			if(coDriver.backButton.wasPressed()){
 				coDriverStop();
 			}
+			
+			outputAllToSmartDashboard();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw(t);
