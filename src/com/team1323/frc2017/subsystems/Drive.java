@@ -3,6 +3,8 @@ package com.team1323.frc2017.subsystems;
 import com.ctre.CANTalon;
 import com.ctre.CANTalon.FeedbackDevice;
 import com.ctre.CANTalon.TalonControlMode;
+import com.ctre.CANTalon.VelocityMeasurementPeriod;
+import com.team1323.frc2017.Constants;
 import com.team1323.frc2017.Ports;
 import com.team1323.frc2017.loops.Loop;
 import com.team1323.lib.util.DriveSignal;
@@ -41,11 +43,19 @@ public class Drive extends Subsystem{
 		shifter = new Solenoid(20, Ports.DRIVE_SHIFTER);
 		setHighGear(true);
 		
-		leftMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
-		rightMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 10);
+		leftMaster.setFeedbackDevice(FeedbackDevice.QuadEncoder);
+		rightMaster.setFeedbackDevice(FeedbackDevice.QuadEncoder);
 		
-		leftMaster.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
-		rightMaster.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
+		leftMaster.configEncoderCodesPerRev(360);
+		rightMaster.configEncoderCodesPerRev(360);
+		
+		leftMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 5);
+		rightMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 5);
+		
+		leftMaster.SetVelocityMeasurementPeriod(VelocityMeasurementPeriod.Period_10Ms);
+		leftMaster.SetVelocityMeasurementWindow(32);
+		rightMaster.SetVelocityMeasurementPeriod(VelocityMeasurementPeriod.Period_10Ms);
+		rightMaster.SetVelocityMeasurementWindow(32);
 		
 		leftMaster.changeControlMode(TalonControlMode.PercentVbus);
 		leftMaster.set(0);
@@ -105,6 +115,14 @@ public class Drive extends Subsystem{
 		shifter.set(highGear);
 	}
 	
+	public double getLeftDistance(){
+		return leftMaster.getPosition() * (Constants.kWheelDiameter * Math.PI);
+	}
+	
+	public double getRightDistance(){
+		return rightMaster.getPosition() * (Constants.kWheelDiameter * Math.PI);
+	}
+	
 	@Override
 	public synchronized void stop(){
 		setOpenLoop(DriveSignal.NEUTRAL);
@@ -112,8 +130,8 @@ public class Drive extends Subsystem{
 	
 	@Override
 	public void outputToSmartDashboard(){
-		SmartDashboard.putNumber("Left Drive Encoder", leftMaster.getPosition());
-		SmartDashboard.putNumber("Right Drive Encoder", rightMaster.getPosition());
+		SmartDashboard.putNumber("Left Drive Encoder", getLeftDistance());
+		SmartDashboard.putNumber("Right Drive Encoder", getRightDistance());
 		SmartDashboard.putNumber("Right Master Voltage", rightMaster.getOutputVoltage());
 		SmartDashboard.putNumber("Right Slave Voltage", rightSlave.getOutputVoltage());
 		SmartDashboard.putNumber("Left Master Voltage", leftMaster.getOutputVoltage());

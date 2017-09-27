@@ -1,6 +1,7 @@
 package com.team1323.frc2017;
 
 import com.team1323.frc2017.loops.Looper;
+import com.team1323.frc2017.subsystems.GearIntake;
 import com.team1323.io.LogitechJoystick;
 import com.team1323.io.SteeringWheel;
 import com.team1323.io.Xbox;
@@ -40,6 +41,7 @@ public class Robot extends IterativeRobot {
 			zeroAllSensors();
 			
 			enabledLooper.register(robot.drive.getLoop());
+			enabledLooper.register(robot.gearIntake.getLoop());
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw(t);
@@ -62,6 +64,7 @@ public class Robot extends IterativeRobot {
 	
 	public void coDriverStop(){
 		robot.ballIntake.stop();
+		robot.gearIntake.stop();
 	}
 
 	@Override
@@ -142,7 +145,15 @@ public class Robot extends IterativeRobot {
 				robot.ballIntake.reverse();
 			}
 			
-			if(coDriver.backButton.wasPressed()){
+			if(coDriver.aButton.wasPressed() || driverJoystick.thumbButton.wasPressed()){
+				robot.gearIntake.setState(GearIntake.State.INTAKING);
+			}
+			
+			if(coDriver.rightTrigger.wasPressed() || driverJoystick.triggerButton.wasPressed()){
+				robot.gearIntake.score();
+			}
+			
+			if(coDriver.backButton.wasPressed() || wheel.yButton.wasPressed()){
 				coDriverStop();
 			}
 			

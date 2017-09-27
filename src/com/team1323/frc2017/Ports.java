@@ -22,8 +22,11 @@ public class Ports {
 	public static final int SHOOTER_SLAVE_RIGHT_1 = 11;
 	public static final int SHOOTER_SLAVE_RIGHT_2 = 10;
 	
-	public static final int GEAR_INTAKE = 9;
+	public static final int GEAR_INTAKE = 11;//9
 	
 	//Solenoids
-	public static final int DRIVE_SHIFTER = 0;
+	public static final int DRIVE_SHIFTER = 2;
+	
+	public static final int LEFT_GEAR_FLAP = 0;
+	public static final int RIGHT_GEAR_FLAP = 1;
 }
