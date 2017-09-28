@@ -55,11 +55,13 @@ public class Robot extends IterativeRobot {
 	public void outputAllToSmartDashboard(){
 		robot.drive.outputToSmartDashboard();
 		robot.ballIntake.outputToSmartDashboard();
+		robot.gearIntake.outputToSmartDashboard();
 	}
 	
 	public void stopAll(){
 		robot.drive.stop();
 		robot.ballIntake.stop();
+		robot.gearIntake.stop();
 	}
 	
 	public void coDriverStop(){
@@ -145,11 +147,13 @@ public class Robot extends IterativeRobot {
 				robot.ballIntake.reverse();
 			}
 			
-			if(coDriver.aButton.wasPressed() || driverJoystick.thumbButton.wasPressed()){
+			if(coDriver.aButton.isBeingPressed() || driverJoystick.thumbButton.isBeingPressed()){
 				robot.gearIntake.setState(GearIntake.State.INTAKING);
+			}else if(robot.gearIntake.getState() == GearIntake.State.INTAKING){
+				robot.gearIntake.setState(GearIntake.State.HOLDING);
 			}
 			
-			if(coDriver.rightTrigger.wasPressed() || driverJoystick.triggerButton.wasPressed()){
+			if(coDriver.rightTrigger.isBeingPressed() || driverJoystick.triggerButton.isBeingPressed()){
 				robot.gearIntake.score();
 			}
 			

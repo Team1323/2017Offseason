@@ -4,7 +4,6 @@ import com.ctre.CANTalon;
 import com.ctre.CANTalon.TalonControlMode;
 import com.team1323.frc2017.Ports;
 import com.team1323.frc2017.loops.Loop;
-import com.team1323.lib.util.DriveSignal;
 
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
@@ -23,6 +22,8 @@ public class GearIntake extends Subsystem{
 	
 	public GearIntake(){
 		intakeMotor = new CANTalon(Ports.GEAR_INTAKE);
+		intakeMotor.setCurrentLimit(50);
+		intakeMotor.EnableCurrentLimit(true);
 		intakeMotor.changeControlMode(TalonControlMode.PercentVbus);
 		gearFlaps = new Solenoid(20, Ports.LEFT_GEAR_FLAP);
 	}
