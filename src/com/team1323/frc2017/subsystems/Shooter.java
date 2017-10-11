@@ -3,6 +3,7 @@ package com.team1323.frc2017.subsystems;
 import com.ctre.CANTalon;
 import com.ctre.CANTalon.FeedbackDevice;
 import com.ctre.CANTalon.TalonControlMode;
+import com.team1323.frc2017.Constants;
 import com.team1323.frc2017.Ports;
 
 public class Shooter extends Subsystem{
@@ -52,20 +53,24 @@ public class Shooter extends Subsystem{
 		leftMaster.set(rpm);
 	}
 	
-	public void setPercentVBus(double percent){
+	public void setOpenLoop(double percent){
 		leftMaster.changeControlMode(TalonControlMode.PercentVbus);
 		leftMaster.set(percent);
 	}
 	
+	public boolean isOnTarget(){
+		return leftMaster.getControlMode() == CANTalon.TalonControlMode.Speed &&
+				Math.abs(leftMaster.getSetpoint() - leftMaster.getSpeed()) < Constants.kShooterAllowableError;
+	}
+	
 	@Override
 	public synchronized void stop(){
-		setPercentVBus(0);
+		setOpenLoop(0);
 	}
 	
 	@Override
 	public synchronized void zeroSensors(){
-		leftMaster.setEncPosition(0);
-		leftMaster.setPosition(0);
+		//no-op
 	}
 	
 	@Override

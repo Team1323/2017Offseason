@@ -22,10 +22,10 @@ public class GearIntake extends Subsystem{
 	
 	public GearIntake(){
 		intakeMotor = new CANTalon(Ports.GEAR_INTAKE);
-		intakeMotor.setCurrentLimit(50);
+		intakeMotor.setCurrentLimit(15);
 		intakeMotor.EnableCurrentLimit(true);
 		intakeMotor.changeControlMode(TalonControlMode.PercentVbus);
-		gearFlaps = new Solenoid(20, Ports.LEFT_GEAR_FLAP);
+		gearFlaps = new Solenoid(20, Ports.GEAR_FLAPS);
 	}
 	
 	public enum State{

@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class DoubleDyeRotor extends Subsystem{
 	private CANTalon leftInner, rightInner, arm;
 	
+	private boolean isInThread = false;
+	
 	private static DoubleDyeRotor instance = new DoubleDyeRotor();
 	public static DoubleDyeRotor getInstance(){
 		return instance;
@@ -24,11 +26,16 @@ public class DoubleDyeRotor extends Subsystem{
 	}
 	
 	public void rightRollerForward(){
-		rightInner.set(1.0);
+		rightInner.set(-1.0);
 	}
 	
 	public void leftRollerForward(){
 		leftInner.set(1.0);
+	}
+	
+	public void reverseRollers(){
+		rightInner.set(1.0);
+		leftInner.set(-1.0);
 	}
 	
 	public void armsForward(){
@@ -42,6 +49,29 @@ public class DoubleDyeRotor extends Subsystem{
 	
 	public void stopArms(){
 		arm.set(0);
+	}
+	
+	public void startFeeding(){
+		if(!isInThread){
+			StartFeeding t = new StartFeeding();
+			t.start();
+		}
+	}
+	
+	public class StartFeeding extends Thread{
+		public void run(){
+			isInThread = true;
+			rightRollerForward();
+			leftRollerForward();
+			try {
+				Thread.sleep(250);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			armsForward();
+			isInThread = false;
+		}
 	}
 	
 	@Override

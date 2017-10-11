@@ -56,17 +56,23 @@ public class Robot extends IterativeRobot {
 		robot.drive.outputToSmartDashboard();
 		robot.ballIntake.outputToSmartDashboard();
 		robot.gearIntake.outputToSmartDashboard();
+		robot.dyeRotors.outputToSmartDashboard();
+		robot.hanger.outputToSmartDashboard();
 	}
 	
 	public void stopAll(){
 		robot.drive.stop();
 		robot.ballIntake.stop();
 		robot.gearIntake.stop();
+		robot.dyeRotors.stop();
+		robot.hanger.stop();
 	}
 	
 	public void coDriverStop(){
 		robot.ballIntake.stop();
 		robot.gearIntake.stop();
+		robot.dyeRotors.stop();
+		robot.hanger.stop();
 	}
 
 	@Override
@@ -153,8 +159,18 @@ public class Robot extends IterativeRobot {
 				robot.gearIntake.setState(GearIntake.State.HOLDING);
 			}
 			
-			if(coDriver.rightTrigger.isBeingPressed() || driverJoystick.triggerButton.isBeingPressed()){
+			if(driverJoystick.triggerButton.isBeingPressed()){
 				robot.gearIntake.score();
+			}
+			
+			if(coDriver.rightTrigger.isBeingPressed()){
+				//robot.dyeRotors.startFeeding();
+				robot.dyeRotors.leftRollerForward();
+				robot.dyeRotors.rightRollerForward();
+			}
+			
+			if(coDriver.startButton.isBeingPressed()){
+				robot.hanger.hang();
 			}
 			
 			if(coDriver.backButton.wasPressed() || wheel.yButton.wasPressed()){
