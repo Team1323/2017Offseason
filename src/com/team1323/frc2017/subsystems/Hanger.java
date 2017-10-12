@@ -8,6 +8,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Hanger extends Subsystem{
 	private CANTalon motor1, motor2;
+	public CANTalon getTalon(){
+		return motor1;
+	}
 	
 	private static Hanger instance = new Hanger();
 	public static Hanger getInstance(){
@@ -17,9 +20,9 @@ public class Hanger extends Subsystem{
 		motor1 = new CANTalon(Ports.HANGER_1);
 		motor2 = new CANTalon(Ports.HANGER_2);
 		
-		motor1.setCurrentLimit(75);
+		motor1.setCurrentLimit(40);
 		motor1.EnableCurrentLimit(true);
-		motor2.setCurrentLimit(75);
+		motor2.setCurrentLimit(40);
 		motor2.EnableCurrentLimit(true);
 		
 		motor1.enableBrakeMode(true);

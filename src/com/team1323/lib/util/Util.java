@@ -224,4 +224,8 @@ public class Util {
         return newAngle;
     }
     
+    public static boolean epsilonEquals(double a, double b, double epsilon) {
+        return (a - epsilon <= b) && (a + epsilon >= b);
+    }
+    
 }

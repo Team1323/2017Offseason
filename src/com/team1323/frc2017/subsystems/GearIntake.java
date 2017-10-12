@@ -41,12 +41,12 @@ public class GearIntake extends Subsystem{
 	
 	private final Loop loop = new Loop(){
 		@Override
-		public void onStart(){
+		public void onStart(double timestamp){
 			setState(State.HOLDING);
 		}
 		
 		@Override
-		public void onLoop(){
+		public void onLoop(double timestamp){
 			synchronized (GearIntake.this){
 				switch(currentState){
 				case INTAKING:
@@ -70,7 +70,7 @@ public class GearIntake extends Subsystem{
 		}
 		
 		@Override
-		public void onStop(){
+		public void onStop(double timestamp){
 			setState(State.HOLDING);
 		}
 	};

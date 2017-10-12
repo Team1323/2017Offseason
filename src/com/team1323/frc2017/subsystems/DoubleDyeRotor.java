@@ -39,7 +39,7 @@ public class DoubleDyeRotor extends Subsystem{
 	}
 	
 	public void armsForward(){
-		arm.set(1.0);
+		arm.set(0.8);
 	}
 	
 	public void stopRollers(){

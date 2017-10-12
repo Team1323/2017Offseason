@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Drive extends Subsystem{
 	private final CANTalon leftMaster, leftSlave, rightMaster, rightSlave;
 	private final Solenoid shifter;
+	private Pigeon pidgey;
 	private boolean isHighGear = false;
 	public boolean isHighGear(){
 		return isHighGear;
@@ -28,9 +29,12 @@ public class Drive extends Subsystem{
 		return controlState;
 	}
 	
-	private static Drive instance = new Drive();
+	private static Drive instance = null;
 	
 	public static Drive getInstance(){
+		if(instance == null){
+			instance = new Drive();
+		}
 		return instance;
 	}
 	
@@ -66,17 +70,19 @@ public class Drive extends Subsystem{
 		rightSlave.changeControlMode(TalonControlMode.Follower);
 		rightSlave.set(Ports.DRIVE_RIGHT_MASTER);
 		
+		pidgey = Pigeon.getInstance();
+		
 		setOpenLoop(DriveSignal.NEUTRAL);
 	}
 	
 	private final Loop loop = new Loop(){
 		@Override
-		public void onStart(){
+		public void onStart( double timestamp){
 			setOpenLoop(DriveSignal.NEUTRAL);
 		}
 		
 		@Override
-		public void onLoop(){
+		public void onLoop(double timestamp){
 			synchronized (Drive.this){
 				switch(controlState){
 				case OPEN_LOOP:
@@ -88,7 +94,7 @@ public class Drive extends Subsystem{
 		}
 		
 		@Override
-		public void onStop(){
+		public void onStop(double timestamp){
 			setOpenLoop(DriveSignal.NEUTRAL);
 		}
 	};
@@ -115,12 +121,36 @@ public class Drive extends Subsystem{
 		shifter.set(highGear);
 	}
 	
-	public double getLeftDistance(){
-		return leftMaster.getPosition() * (Constants.kWheelDiameter * Math.PI);
+	public double getLeftDistanceInches(){
+		return rotationsToInches(leftMaster.getPosition());
 	}
 	
-	public double getRightDistance(){
-		return rightMaster.getPosition() * (Constants.kWheelDiameter * Math.PI);
+	public double getRightDistanceInches(){
+		return rotationsToInches(rightMaster.getPosition());
+	}
+	
+	public double getLeftVelocityInchesPerSec(){
+		return rpmToInchesPerSecond(leftMaster.getSpeed());
+	}
+	
+	public double getRightVelocityInchesPerSec(){
+		return rpmToInchesPerSecond(rightMaster.getSpeed());
+	}
+	
+	public double rotationsToInches(double rotations){
+		return rotations * (Constants.kWheelDiameter * Math.PI);
+	}
+	
+	public double inchesToRotations(double inches){
+		return inches / (Constants.kWheelDiameter * Math.PI);
+	}
+	
+	public double rpmToInchesPerSecond(double rpm){
+		return rotationsToInches(rpm) / 60;
+	}
+	
+	public double inchesPerSecondToRpm(double inchesPerSecond){
+		return inchesToRotations(inchesPerSecond) * 60;
 	}
 	
 	@Override
@@ -130,8 +160,8 @@ public class Drive extends Subsystem{
 	
 	@Override
 	public void outputToSmartDashboard(){
-		SmartDashboard.putNumber("Left Drive Encoder", getLeftDistance());
-		SmartDashboard.putNumber("Right Drive Encoder", getRightDistance());
+		SmartDashboard.putNumber("Left Drive Encoder", getLeftDistanceInches());
+		SmartDashboard.putNumber("Right Drive Encoder", getRightDistanceInches());
 		SmartDashboard.putNumber("Right Master Voltage", rightMaster.getOutputVoltage());
 		SmartDashboard.putNumber("Right Slave Voltage", rightSlave.getOutputVoltage());
 		SmartDashboard.putNumber("Left Master Voltage", leftMaster.getOutputVoltage());

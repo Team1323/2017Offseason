@@ -1,6 +1,8 @@
 package com.team1323.frc2017;
 
 import com.team1323.frc2017.loops.Looper;
+import com.team1323.frc2017.loops.RobotStateEstimator;
+import com.team1323.frc2017.loops.VisionProcessor;
 import com.team1323.frc2017.subsystems.GearIntake;
 import com.team1323.io.LogitechJoystick;
 import com.team1323.io.SteeringWheel;
@@ -25,7 +27,6 @@ public class Robot extends IterativeRobot {
 	private CheesyDriveHelper cheesyDriveHelper = new CheesyDriveHelper();
 	
 	Looper enabledLooper = new Looper();
-	Looper disabledLooper = new Looper();
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -42,6 +43,8 @@ public class Robot extends IterativeRobot {
 			
 			enabledLooper.register(robot.drive.getLoop());
 			enabledLooper.register(robot.gearIntake.getLoop());
+			enabledLooper.register(RobotStateEstimator.getInstance());
+			enabledLooper.register(VisionProcessor.getInstance());
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw(t);
@@ -81,7 +84,6 @@ public class Robot extends IterativeRobot {
 			CrashTracker.logDisabledInit();
 			
 			enabledLooper.stop();
-			disabledLooper.start();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw(t);
@@ -95,7 +97,6 @@ public class Robot extends IterativeRobot {
 			
 			zeroAllSensors();
 			
-			disabledLooper.stop();
 			enabledLooper.start();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
@@ -108,7 +109,6 @@ public class Robot extends IterativeRobot {
 		try{
 			CrashTracker.logTeleopInit();
 			
-			disabledLooper.stop();
 			enabledLooper.start();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
@@ -164,9 +164,7 @@ public class Robot extends IterativeRobot {
 			}
 			
 			if(coDriver.rightTrigger.isBeingPressed()){
-				//robot.dyeRotors.startFeeding();
-				robot.dyeRotors.leftRollerForward();
-				robot.dyeRotors.rightRollerForward();
+				robot.dyeRotors.startFeeding();
 			}
 			
 			if(coDriver.startButton.isBeingPressed()){
