@@ -6,6 +6,9 @@ import com.ctre.CANTalon.TalonControlMode;
 import com.team1323.frc2017.Constants;
 import com.team1323.frc2017.Ports;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 public class Shooter extends Subsystem{
 	private CANTalon rightSlave1, rightSlave2, leftMaster, leftSlave;
 	private static Shooter instance = new Shooter();
@@ -24,7 +27,7 @@ public class Shooter extends Subsystem{
 		leftMaster.SetVelocityMeasurementWindow(32);
 		leftMaster.reverseOutput(false);
 		leftMaster.reverseSensor(false);
-		leftMaster.setPID(4.0, 0.00, 40, 0.027, 0, 0.0, 0);
+		leftMaster.setPID(4.0, 0.00, 40, 0.0285, 0, 0.0, 0);
 		leftMaster.setProfile(0);
 		leftMaster.configNominalOutputVoltage(+0f, -0f);
 		leftMaster.configPeakOutputVoltage(+12f, -0f);
@@ -46,6 +49,11 @@ public class Shooter extends Subsystem{
 		rightSlave2.enableBrakeMode(false);
 		rightSlave2.changeControlMode(TalonControlMode.Follower);
 		rightSlave2.set(Ports.SHOOTER_MASTER);
+		
+		if(leftMaster.isSensorPresent(FeedbackDevice.CtreMagEncoder_Relative) != 
+				CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent){
+			DriverStation.reportWarning("Could not detect shooter encoder!", false);
+		}
 	}
 	
 	public void setSpeed(double rpm){
@@ -63,6 +71,11 @@ public class Shooter extends Subsystem{
 				Math.abs(leftMaster.getSetpoint() - leftMaster.getSpeed()) < Constants.kShooterAllowableError;
 	}
 	
+	public boolean isShooting(){
+		return leftMaster.getControlMode() == CANTalon.TalonControlMode.Speed &&
+				leftMaster.getSetpoint() != 0.0;
+	}
+	
 	@Override
 	public synchronized void stop(){
 		setOpenLoop(0);
@@ -75,6 +88,9 @@ public class Shooter extends Subsystem{
 	
 	@Override
 	public void outputToSmartDashboard(){
-		
+		SmartDashboard.putNumber("Shooter Speed", leftMaster.getSpeed());
+		if(leftMaster.getSpeed() > 2500){
+			System.out.println(leftMaster.getSpeed());
+		}
 	}
 }

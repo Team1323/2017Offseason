@@ -17,10 +17,10 @@ public class Ports {
 	public static final int SWEEPER_ROLLER_2 = 3;
 	public static final int SWEEPER_ARMS = 6;
 	
-	public static final int SHOOTER_MASTER = 4;
-	public static final int SHOOTER_SLAVE_LEFT = 5;
-	public static final int SHOOTER_SLAVE_RIGHT_1 = 11;
-	public static final int SHOOTER_SLAVE_RIGHT_2 = 10;
+	public static final int SHOOTER_MASTER = 11;
+	public static final int SHOOTER_SLAVE_LEFT = 10;
+	public static final int SHOOTER_SLAVE_RIGHT_1 = 4;
+	public static final int SHOOTER_SLAVE_RIGHT_2 = 5;
 	
 	public static final int GEAR_INTAKE = 9;
 	

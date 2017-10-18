@@ -3,11 +3,14 @@ package com.team1323.frc2017;
 import com.team1323.frc2017.loops.Looper;
 import com.team1323.frc2017.loops.RobotStateEstimator;
 import com.team1323.frc2017.loops.VisionProcessor;
+import com.team1323.frc2017.subsystems.Drive;
 import com.team1323.frc2017.subsystems.GearIntake;
 import com.team1323.io.LogitechJoystick;
 import com.team1323.io.SteeringWheel;
 import com.team1323.io.Xbox;
 import com.team1323.lib.util.CrashTracker;
+import com.team1323.lib.util.DriveSignal;
+import com.team254.lib.util.math.Rotation2d;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 
@@ -61,6 +64,7 @@ public class Robot extends IterativeRobot {
 		robot.gearIntake.outputToSmartDashboard();
 		robot.dyeRotors.outputToSmartDashboard();
 		robot.hanger.outputToSmartDashboard();
+		robot.shooter.outputToSmartDashboard();
 	}
 	
 	public void stopAll(){
@@ -69,6 +73,7 @@ public class Robot extends IterativeRobot {
 		robot.gearIntake.stop();
 		robot.dyeRotors.stop();
 		robot.hanger.stop();
+		robot.shooter.stop();
 	}
 	
 	public void coDriverStop(){
@@ -76,6 +81,7 @@ public class Robot extends IterativeRobot {
 		robot.gearIntake.stop();
 		robot.dyeRotors.stop();
 		robot.hanger.stop();
+		robot.shooter.stop();
 	}
 
 	@Override
@@ -144,8 +150,12 @@ public class Robot extends IterativeRobot {
 			driverJoystick.update();
 			coDriver.update();
 			
-			robot.drive.setOpenLoop(cheesyDriveHelper.cheesyDrive(-driverJoystick.getYAxis(), wheel.getWheelTurn(), wheel.leftBumper.isBeingPressed(), true));
-			
+			if(Math.abs(driverJoystick.getYAxis()) > 0 || wheel.leftBumper.isBeingPressed()){
+				robot.drive.setOpenLoop(cheesyDriveHelper.cheesyDrive(-driverJoystick.getYAxis(), 
+						wheel.getWheelTurn(), wheel.leftBumper.isBeingPressed(), true));
+			}else if(robot.drive.currentControlState() == Drive.DriveControlState.OPEN_LOOP){
+				robot.drive.setOpenLoop(DriveSignal.NEUTRAL);
+			}
 			
 			if(coDriver.rightBumper.wasPressed()){
 				robot.ballIntake.forward();
@@ -169,6 +179,14 @@ public class Robot extends IterativeRobot {
 			
 			if(coDriver.startButton.isBeingPressed()){
 				robot.hanger.hang();
+			}
+			
+			if(coDriver.leftTrigger.wasPressed()){
+				robot.shooter.setSpeed(Constants.kShootingSpeed);
+			}
+			
+			if(coDriver.yButton.wasPressed()){
+				robot.drive.setPositionSetpoint(Rotation2d.fromDegrees(90));
 			}
 			
 			if(coDriver.backButton.wasPressed() || wheel.yButton.wasPressed()){

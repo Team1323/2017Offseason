@@ -20,6 +20,10 @@ public class DoubleDyeRotor extends Subsystem{
 		rightInner = new CANTalon(Ports.SWEEPER_ROLLER_2);
 		arm = new CANTalon(Ports.SWEEPER_ARMS);
 		
+		leftInner.enableBrakeMode(false);
+		rightInner.enableBrakeMode(false);
+		arm.enableBrakeMode(false);
+		
 		leftInner.changeControlMode(TalonControlMode.PercentVbus);
 		rightInner.changeControlMode(TalonControlMode.PercentVbus);
 		arm.changeControlMode(TalonControlMode.PercentVbus);

@@ -5,7 +5,7 @@ import com.team1323.lib.util.Util;
 import edu.wpi.first.wpilibj.Joystick;
 
 public class LogitechJoystick extends Joystick{
-	private static final double DEAD_BAND = 0.15;
+	private static final double DEAD_BAND = 0.1;
     private boolean rumbling = false;
     
     public ButtonCheck triggerButton;
