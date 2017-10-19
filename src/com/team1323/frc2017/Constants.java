@@ -10,11 +10,6 @@ public class Constants {
 	public static final double kShootingSpeed = 3100.0;
 	public static final double kShooterAllowableError = 100.0;//rpm
 	public static final double kOptimalShootingRange = 70.0;
-	
- // Path following constants
-	public static final double kSegmentCompletionTolerance = 0.1; // inches
-	public static final double kPathFollowingMaxAccel = 120.0; // inches per second^2
-    public static final double kPathFollowingMaxVel = 120.0; // inches per second
     
  // Goal tracker constants
     public static final double kMaxGoalTrackAge = 1.0;
@@ -43,7 +38,7 @@ public class Constants {
     public static int kDriveHighGearVelocityIZone = 0;
     public static double kDriveHighGearVelocityRampRate = 240.0;
     public static double kDriveHighGearNominalOutput = 0.5;
-    public static double kDriveHighGearMaxSetpoint = 14.0 * 12.0; // 17 fps
+    public static double kDriveHighGearMaxSetpoint = 13.5 * 12.0; // 13.5 fps
     
     public static final double kDriveLowGearPositionKp = 1.6;
     public static final double kDriveLowGearPositionKi = 0.003;
@@ -56,6 +51,29 @@ public class Constants {
                                                                                                                // in RPM
     public static final double kDriveLowGearMaxAccel = 18.0 * 12.0 * 60.0 / (Math.PI * kDriveWheelDiameterInches); // 18 fps/s
                                                                                                              // in RPM/s
+    
+ // Path following constants
+    public static double kMinLookAhead = 12.0; // inches
+    public static double kMinLookAheadSpeed = 9.0; // inches per second
+    public static double kMaxLookAhead = 24.0; // inches
+    public static double kMaxLookAheadSpeed = 120.0; // inches per second
+    public static double kDeltaLookAhead = kMaxLookAhead - kMinLookAhead;
+    public static double kDeltaLookAheadSpeed = kMaxLookAheadSpeed - kMinLookAheadSpeed;
+
+    public static double kInertiaSteeringGain = 0.0; // angular velocity command is multiplied by this gain *
+                                                     // our speed
+                                                     // in inches per sec
+    public static double kSegmentCompletionTolerance = 0.1; // inches
+    public static double kPathFollowingMaxAccel = 120.0; // inches per second^2
+    public static double kPathFollowingMaxVel = 120.0; // inches per second
+    public static double kPathFollowingProfileKp = 5.00;
+    public static double kPathFollowingProfileKi = 0.03;
+    public static double kPathFollowingProfileKv = 0.02;
+    public static double kPathFollowingProfileKffv = 1.0;
+    public static double kPathFollowingProfileKffa = 0.05;
+    public static double kPathFollowingGoalPosTolerance = 0.75;
+    public static double kPathFollowingGoalVelTolerance = 12.0;
+    public static double kPathStopSteeringDistance = 9.0;
     
  // Phone
     public static final int kAndroidAppTcpPort = 8254;

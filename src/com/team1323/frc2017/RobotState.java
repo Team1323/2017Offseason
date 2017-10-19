@@ -222,7 +222,7 @@ public class RobotState {
         SmartDashboard.putNumber("robot_pose_y", odometry.getTranslation().y());
         SmartDashboard.putNumber("robot_pose_theta", odometry.getRotation().getDegrees());
         SmartDashboard.putNumber("robot velocity", vehicle_velocity_measured_.dx);
-        List<RigidTransform2d> poses = getCaptureTimeFieldToGoal();
+        /*List<RigidTransform2d> poses = getCaptureTimeFieldToGoal();
         for (RigidTransform2d pose : poses) {
             // Only output first goal
             SmartDashboard.putNumber("goal_pose_x", pose.getTranslation().x());
@@ -236,6 +236,6 @@ public class RobotState {
         } else {
             SmartDashboard.putNumber("goal_range", 0.0);
             SmartDashboard.putNumber("goal_theta", 0.0);
-        }
+        }*/
     }
 }

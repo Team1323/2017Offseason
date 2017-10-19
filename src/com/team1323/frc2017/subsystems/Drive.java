@@ -14,6 +14,7 @@ import com.team1323.frc2017.vision.ShooterAimingParameters;
 import com.team1323.lib.util.DriveSignal;
 import com.team1323.lib.util.Kinematics;
 import com.team1323.lib.util.Util;
+import com.team254.lib.util.control.Lookahead;
 import com.team254.lib.util.control.Path;
 import com.team254.lib.util.control.PathFollower;
 import com.team254.lib.util.math.RigidTransform2d;
@@ -90,6 +91,9 @@ public class Drive extends Subsystem{
     
     private boolean mIsOnTarget = false;
     private boolean mIsApproaching = false;
+    public boolean isApproaching() {
+        return mIsApproaching;
+    }
 	
 	private static Drive instance = null;
 	
@@ -164,8 +168,30 @@ public class Drive extends Subsystem{
 				switch(mDriveControlState){
 				case OPEN_LOOP:
 					return;
-				default:
-					break;
+				case VELOCITY_SETPOINT:
+                    return;
+                case PATH_FOLLOWING:
+                    if (mPathFollower != null) {
+                        updatePathFollower(timestamp);
+                    }
+                    return;
+                case AIM_TO_GOAL:
+                    if (!Shooter.getInstance().isShooting()) {
+                        updateGoalHeading(timestamp);
+                    }
+                    // fallthrough intended
+                case TURN_TO_HEADING:
+                    //updateTurnToHeading(timestamp);
+                    return;
+                case DRIVE_TOWARDS_GOAL_COARSE_ALIGN:
+                    //updateDriveTowardsGoalCoarseAlign(timestamp);
+                    return;
+                case DRIVE_TOWARDS_GOAL_APPROACH:
+                    //updateDriveTowardsGoalApproach(timestamp);
+                    return;
+                default:
+                    System.out.println("Unexpected drive control state: " + mDriveControlState);
+                    break;
 				}
 			}
 		}
@@ -464,6 +490,97 @@ public class Drive extends Subsystem{
             mDriveControlState = DriveControlState.AIM_TO_GOAL;
             updatePositionSetpoint(getLeftDistanceInches(), getRightDistanceInches());
             mTargetHeading = Rotation2d.fromDegrees(pidgey.getAngle());
+        }
+    }
+    
+    /**
+     * Configures the drivebase for auto driving
+     */
+    public synchronized void setWantDriveTowardsGoal() {
+        if (mDriveControlState != DriveControlState.DRIVE_TOWARDS_GOAL_COARSE_ALIGN &&
+                mDriveControlState != DriveControlState.DRIVE_TOWARDS_GOAL_APPROACH &&
+                mDriveControlState != DriveControlState.AIM_TO_GOAL) {
+            mIsOnTarget = false;
+            configureTalonsForPositionControl();
+            mDriveControlState = DriveControlState.DRIVE_TOWARDS_GOAL_COARSE_ALIGN;
+            updatePositionSetpoint(getLeftDistanceInches(), getRightDistanceInches());
+            mTargetHeading = Rotation2d.fromDegrees(pidgey.getAngle());
+        }
+    }
+    
+    /**
+     * Configures the drivebase to turn to a desired heading
+     */
+    public synchronized void setWantTurnToHeading(Rotation2d heading) {
+        if (mDriveControlState != DriveControlState.TURN_TO_HEADING) {
+            configureTalonsForPositionControl();
+            mDriveControlState = DriveControlState.TURN_TO_HEADING;
+            updatePositionSetpoint(getLeftDistanceInches(), getRightDistanceInches());
+        }
+        if (Math.abs(heading.inverse().rotateBy(mTargetHeading).getDegrees()) > 1E-3) {
+            mTargetHeading = heading;
+            mIsOnTarget = false;
+        }
+    }
+    
+    /**
+     * Configures the drivebase to drive a path. Used for autonomous driving
+     * 
+     * @see Path
+     */
+    public synchronized void setWantDrivePath(Path path, boolean reversed) {
+        if (mCurrentPath != path || mDriveControlState != DriveControlState.PATH_FOLLOWING) {
+            configureTalonsForSpeedControl();
+            RobotState.getInstance().resetDistanceDriven();
+            mPathFollower = new PathFollower(path, reversed,
+                    new PathFollower.Parameters(
+                            new Lookahead(Constants.kMinLookAhead, Constants.kMaxLookAhead,
+                                    Constants.kMinLookAheadSpeed, Constants.kMaxLookAheadSpeed),
+                            Constants.kInertiaSteeringGain, Constants.kPathFollowingProfileKp,
+                            Constants.kPathFollowingProfileKi, Constants.kPathFollowingProfileKv,
+                            Constants.kPathFollowingProfileKffv, Constants.kPathFollowingProfileKffa,
+                            Constants.kPathFollowingMaxVel, Constants.kPathFollowingMaxAccel,
+                            Constants.kPathFollowingGoalPosTolerance, Constants.kPathFollowingGoalVelTolerance,
+                            Constants.kPathStopSteeringDistance));
+            mDriveControlState = DriveControlState.PATH_FOLLOWING;
+            mCurrentPath = path;
+        } else {
+            setVelocitySetpoint(0, 0);
+        }
+    }
+    
+    public synchronized boolean isDoneWithPath() {
+        if (mDriveControlState == DriveControlState.PATH_FOLLOWING && mPathFollower != null) {
+            return mPathFollower.isFinished();
+        } else {
+            System.out.println("Robot is not in path following mode");
+            return true;
+        }
+    }
+
+    public synchronized void forceDoneWithPath() {
+        if (mDriveControlState == DriveControlState.PATH_FOLLOWING && mPathFollower != null) {
+            mPathFollower.forceFinish();
+        } else {
+            System.out.println("Robot is not in path following mode");
+        }
+    }
+
+    public synchronized boolean isDoneWithTurn() {
+        if (mDriveControlState == DriveControlState.TURN_TO_HEADING) {
+            return mIsOnTarget;
+        } else {
+            System.out.println("Robot is not in turn to heading mode");
+            return false;
+        }
+    }
+
+    public synchronized boolean hasPassedMarker(String marker) {
+        if (mDriveControlState == DriveControlState.PATH_FOLLOWING && mPathFollower != null) {
+            return mPathFollower.hasPassedMarker(marker);
+        } else {
+            System.out.println("Robot is not in path following mode");
+            return false;
         }
     }
     

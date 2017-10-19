@@ -3,6 +3,8 @@ package com.team1323.frc2017;
 import com.team1323.frc2017.loops.Looper;
 import com.team1323.frc2017.loops.RobotStateEstimator;
 import com.team1323.frc2017.loops.VisionProcessor;
+import com.team1323.frc2017.paths.PathContainer;
+import com.team1323.frc2017.paths.StartToCenterGearBlue;
 import com.team1323.frc2017.subsystems.Drive;
 import com.team1323.frc2017.subsystems.GearIntake;
 import com.team1323.io.LogitechJoystick;
@@ -10,9 +12,12 @@ import com.team1323.io.SteeringWheel;
 import com.team1323.io.Xbox;
 import com.team1323.lib.util.CrashTracker;
 import com.team1323.lib.util.DriveSignal;
+import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Rotation2d;
+import com.team254.lib.util.math.Translation2d;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Timer;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -23,6 +28,7 @@ import edu.wpi.first.wpilibj.IterativeRobot;
  */
 public class Robot extends IterativeRobot {
 	private RobotSystem robot;
+	private RobotState robotState = RobotState.getInstance();
 	
 	private LogitechJoystick driverJoystick;
 	private SteeringWheel wheel;
@@ -56,6 +62,7 @@ public class Robot extends IterativeRobot {
 	
 	public void zeroAllSensors(){
 		robot.drive.zeroSensors();
+		robotState.reset(Timer.getFPGATimestamp(), new RigidTransform2d(new Translation2d(0, 0), Rotation2d.fromDegrees(180)));
 	}
 	
 	public void outputAllToSmartDashboard(){
@@ -65,6 +72,7 @@ public class Robot extends IterativeRobot {
 		robot.dyeRotors.outputToSmartDashboard();
 		robot.hanger.outputToSmartDashboard();
 		robot.shooter.outputToSmartDashboard();
+		robotState.outputToSmartDashboard();
 	}
 	
 	public void stopAll(){
@@ -150,11 +158,12 @@ public class Robot extends IterativeRobot {
 			driverJoystick.update();
 			coDriver.update();
 			
-			if(Math.abs(driverJoystick.getYAxis()) > 0 || wheel.leftBumper.isBeingPressed()){
+			if(robot.drive.currentControlState() == Drive.DriveControlState.OPEN_LOOP){
 				robot.drive.setOpenLoop(cheesyDriveHelper.cheesyDrive(-driverJoystick.getYAxis(), 
 						wheel.getWheelTurn(), wheel.leftBumper.isBeingPressed(), true));
-			}else if(robot.drive.currentControlState() == Drive.DriveControlState.OPEN_LOOP){
-				robot.drive.setOpenLoop(DriveSignal.NEUTRAL);
+			}else if(Math.abs(driverJoystick.getYAxis()) > 0.5 || wheel.leftBumper.isBeingPressed()){
+				robot.drive.setOpenLoop(cheesyDriveHelper.cheesyDrive(-driverJoystick.getYAxis(), 
+						wheel.getWheelTurn(), wheel.leftBumper.isBeingPressed(), true));
 			}
 			
 			if(coDriver.rightBumper.wasPressed()){
@@ -186,10 +195,16 @@ public class Robot extends IterativeRobot {
 			}
 			
 			if(coDriver.yButton.wasPressed()){
-				robot.drive.setPositionSetpoint(Rotation2d.fromDegrees(90));
+				robot.dyeRotors.stopArms();
+				robot.dyeRotors.reverseRollers();
 			}
 			
-			if(coDriver.backButton.wasPressed() || wheel.yButton.wasPressed()){
+			if(coDriver.xButton.wasPressed()){
+				PathContainer pc = new StartToCenterGearBlue();
+				robot.drive.setWantDrivePath(pc.buildPath(), pc.isReversed());
+			}
+			
+			if(coDriver.backButton.wasPressed()){
 				coDriverStop();
 			}
 			
