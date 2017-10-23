@@ -13,9 +13,10 @@ public class Ports {
 	public static final int HANGER_1 = 2;
 	public static final int HANGER_2 = 13;
 	
-	public static final int SWEEPER_ROLLER_1 = 12;
-	public static final int SWEEPER_ROLLER_2 = 3;
-	public static final int SWEEPER_ARMS = 6;
+	public static final int DYE_ROLLER_1 = 12;
+	public static final int DYE_ROLLER_2 = 3;
+	public static final int DYE_ARMS = 6;
+	public static final int SLIDE_FEEDER = 7;
 	
 	public static final int SHOOTER_MASTER = 11;
 	public static final int SHOOTER_SLAVE_LEFT = 10;

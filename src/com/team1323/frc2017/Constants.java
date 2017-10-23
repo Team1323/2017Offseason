@@ -60,17 +60,17 @@ public class Constants {
     public static double kDeltaLookAhead = kMaxLookAhead - kMinLookAhead;
     public static double kDeltaLookAheadSpeed = kMaxLookAheadSpeed - kMinLookAheadSpeed;
 
-    public static double kInertiaSteeringGain = 0.0; // angular velocity command is multiplied by this gain *
+    public static double kInertiaSteeringGain = 0.02;//0.0125; // angular velocity command is multiplied by this gain *
                                                      // our speed
                                                      // in inches per sec
     public static double kSegmentCompletionTolerance = 0.1; // inches
     public static double kPathFollowingMaxAccel = 120.0; // inches per second^2
     public static double kPathFollowingMaxVel = 120.0; // inches per second
-    public static double kPathFollowingProfileKp = 5.00;
-    public static double kPathFollowingProfileKi = 0.03;
-    public static double kPathFollowingProfileKv = 0.02;
+    public static double kPathFollowingProfileKp = 2.0;
+    public static double kPathFollowingProfileKi = 0.0;
+    public static double kPathFollowingProfileKv = 0.0;
     public static double kPathFollowingProfileKffv = 1.0;
-    public static double kPathFollowingProfileKffa = 0.05;
+    public static double kPathFollowingProfileKffa = 0.0;
     public static double kPathFollowingGoalPosTolerance = 0.75;
     public static double kPathFollowingGoalVelTolerance = 12.0;
     public static double kPathStopSteeringDistance = 9.0;

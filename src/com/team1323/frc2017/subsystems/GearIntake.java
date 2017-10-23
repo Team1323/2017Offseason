@@ -5,6 +5,7 @@ import com.ctre.CANTalon.TalonControlMode;
 import com.team1323.frc2017.Ports;
 import com.team1323.frc2017.loops.Loop;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -12,8 +13,23 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class GearIntake extends Subsystem{
 	private CANTalon intakeMotor;
 	private Solenoid gearFlaps;
+	private DigitalInput banner;
 	
+	private boolean hasGear = false;
 	private boolean isScoring = false;
+	public boolean isScoring(){
+		return isScoring;
+	}
+	private boolean needsToNotifyDriver = false;
+	public boolean needsToNotify(){
+		if(needsToNotifyDriver){
+			needsToNotifyDriver = false;
+			return true;
+		}
+		return needsToNotifyDriver;
+	}
+	private boolean hasSeenGearWhileIntaking = false;
+	private double firstTimeGearSeen = Double.POSITIVE_INFINITY;
 	
 	private static GearIntake instance = new GearIntake();
 	public static GearIntake getInstance(){
@@ -26,17 +42,20 @@ public class GearIntake extends Subsystem{
 		intakeMotor.EnableCurrentLimit(true);
 		intakeMotor.changeControlMode(TalonControlMode.PercentVbus);
 		gearFlaps = new Solenoid(20, Ports.GEAR_FLAPS);
+		banner = new DigitalInput(0);
 	}
 	
 	public enum State{
 		INTAKING, HOLDING, SCORING, IDLE
 	}
 	private State currentState = State.HOLDING;
+	private double stateStartTime = Double.POSITIVE_INFINITY;
 	public State getState(){
 		return currentState;
 	}
 	public void setState(State state){
 		currentState = state;
+		hasSeenGearWhileIntaking = false;
 	}
 	
 	private final Loop loop = new Loop(){
@@ -52,12 +71,26 @@ public class GearIntake extends Subsystem{
 				case INTAKING:
 					retractGearFlaps();
 					intakeForward();
+					if(!banner.get()){
+						needsToNotifyDriver = true;
+						hasGear = true;
+						if(!hasSeenGearWhileIntaking)
+							firstTimeGearSeen = timestamp;
+						hasSeenGearWhileIntaking = true;
+					}
 					break;
 				case HOLDING:
 					retractGearFlaps();
-					stopIntake();
+					if(hasGear && timestamp - firstTimeGearSeen < 0.5){
+						intakeForward();
+					}else if(hasGear){
+						intakeMotor.set(-0.15);
+					}else{
+						stopIntake();
+					}
 					break;
 				case SCORING:
+					hasGear = false;
 					break;
 				case IDLE:
 					stopIntake();
@@ -80,6 +113,10 @@ public class GearIntake extends Subsystem{
 	
 	public void intakeForward(){
 		intakeMotor.set(-1.0);
+	}
+	
+	public void intakeHold(){
+		intakeMotor.set(0.25);
 	}
 	
 	public void intakeReverse(){
@@ -117,7 +154,7 @@ public class GearIntake extends Subsystem{
 		public void run(){
 			isScoring = true;
 			intakeForward();
-			Timer.delay(0.2);
+			Timer.delay(0.1);
 			extendGearFlaps();
 			Timer.delay(0.5);
 			stopIntake();
@@ -135,5 +172,6 @@ public class GearIntake extends Subsystem{
 	public void outputToSmartDashboard(){
 		SmartDashboard.putNumber("Gear Intake Voltage", intakeMotor.getOutputVoltage());
 		SmartDashboard.putNumber("Gear Intake Current", intakeMotor.getOutputCurrent());
+		SmartDashboard.putBoolean("Gear Intake Banner", banner.get());
 	}
 }

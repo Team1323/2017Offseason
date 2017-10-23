@@ -5,6 +5,7 @@ import com.ctre.CANTalon.FeedbackDevice;
 import com.ctre.CANTalon.TalonControlMode;
 import com.team1323.frc2017.Constants;
 import com.team1323.frc2017.Ports;
+import com.team1323.frc2017.loops.Loop;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -23,15 +24,19 @@ public class Shooter extends Subsystem{
 		
 		leftMaster.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
 		leftMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.General, 2);
+		leftMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.AnalogTempVbat, 2);
+		leftMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 5);
 		leftMaster.SetVelocityMeasurementPeriod(CANTalon.VelocityMeasurementPeriod.Period_10Ms);
 		leftMaster.SetVelocityMeasurementWindow(32);
 		leftMaster.reverseOutput(false);
 		leftMaster.reverseSensor(false);
-		leftMaster.setPID(4.0, 0.00, 40, 0.0285, 0, 0.0, 0);
-		leftMaster.setProfile(0);
+		leftMaster.setPID(4.0, 0.00, 40.0, 0.0285, 0, 0.0, 0);
+		leftMaster.setPID(2.0, 0.0, 0.0, 0.028, 0, 0.0, 1);
+		leftMaster.setProfile(1);
 		leftMaster.configNominalOutputVoltage(+0f, -0f);
 		leftMaster.configPeakOutputVoltage(+12f, -0f);
 		leftMaster.setNominalClosedLoopVoltage(12.0f);
+		leftMaster.setVoltageRampRate(0.0);
 		leftMaster.setAllowableClosedLoopErr(0);
 		leftMaster.enableBrakeMode(false);
 		leftMaster.changeControlMode(TalonControlMode.PercentVbus);
@@ -54,6 +59,54 @@ public class Shooter extends Subsystem{
 				CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent){
 			DriverStation.reportWarning("Could not detect shooter encoder!", false);
 		}
+	}
+	
+	public enum State{
+		Off, SpinUp, Hold
+	}
+	private State currentState = State.Off;
+	public State getState(){
+		return currentState;
+	}
+	public void setState(State newState){
+		currentState = newState;
+	}
+	
+	private final Loop shooterLoop = new Loop(){
+		@Override
+		public void onStart(double timestamp){
+			setState(State.Off);
+			setOpenLoop(0.0);
+		}
+		
+		@Override
+		public void onLoop(double timestamp){
+			synchronized(Shooter.this){
+				switch(currentState){
+				case Off:
+					setOpenLoop(0.0);
+					break;
+				case SpinUp:
+					leftMaster.setVoltageRampRate(240.0);
+					setSpeed(Constants.kShootingSpeed);
+					if(isOnTarget())setState(State.Hold);
+					break;
+				case Hold:
+					leftMaster.setVoltageRampRate(0.0);
+					break;
+				}
+			}
+		}
+		
+		@Override
+		public void onStop(double timestamp){
+			setState(State.Off);
+			setOpenLoop(0.0);
+		}
+	};
+	
+	public Loop getLoop(){
+		return shooterLoop;
 	}
 	
 	public void setSpeed(double rpm){
@@ -92,5 +145,9 @@ public class Shooter extends Subsystem{
 		if(leftMaster.getSpeed() > 2500){
 			System.out.println(leftMaster.getSpeed());
 		}
+		SmartDashboard.putNumber("Shooter Master Current", leftMaster.getOutputCurrent());
+		SmartDashboard.putNumber("Shooter Slave 1 Current", leftSlave.getOutputCurrent());
+		SmartDashboard.putNumber("Shooter Slave 2 Current", rightSlave1.getOutputCurrent());
+		SmartDashboard.putNumber("Shooter Slave 3 Current", rightSlave2.getOutputCurrent());
 	}
 }

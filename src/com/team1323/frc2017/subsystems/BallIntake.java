@@ -18,6 +18,7 @@ public class BallIntake extends Subsystem{
 		intakeMotor = new CANTalon(Ports.BALL_INTAKE);
 		intakeMotor.setCurrentLimit(30);
 		intakeMotor.EnableCurrentLimit(true);
+		intakeMotor.enableBrakeMode(false);
 		intakeMotor.changeControlMode(TalonControlMode.PercentVbus);
 	}
 	

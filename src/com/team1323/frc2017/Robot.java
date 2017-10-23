@@ -4,9 +4,10 @@ import com.team1323.frc2017.loops.Looper;
 import com.team1323.frc2017.loops.RobotStateEstimator;
 import com.team1323.frc2017.loops.VisionProcessor;
 import com.team1323.frc2017.paths.PathContainer;
-import com.team1323.frc2017.paths.StartToCenterGearBlue;
+import com.team1323.frc2017.paths.StartToBoilerBlue;
 import com.team1323.frc2017.subsystems.Drive;
 import com.team1323.frc2017.subsystems.GearIntake;
+import com.team1323.frc2017.subsystems.Shooter;
 import com.team1323.io.LogitechJoystick;
 import com.team1323.io.SteeringWheel;
 import com.team1323.io.Xbox;
@@ -36,6 +37,7 @@ public class Robot extends IterativeRobot {
 	private CheesyDriveHelper cheesyDriveHelper = new CheesyDriveHelper();
 	
 	Looper enabledLooper = new Looper();
+	Looper disabledLooper = new Looper();
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -52,8 +54,13 @@ public class Robot extends IterativeRobot {
 			
 			enabledLooper.register(robot.drive.getLoop());
 			enabledLooper.register(robot.gearIntake.getLoop());
+			enabledLooper.register(robot.shooter.getLoop());
+			enabledLooper.register(robot.pidgey.getLoop());
 			enabledLooper.register(RobotStateEstimator.getInstance());
 			enabledLooper.register(VisionProcessor.getInstance());
+			
+			disabledLooper.register(robot.pidgey.getLoop());
+			disabledLooper.register(VisionProcessor.getInstance());
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw(t);
@@ -62,7 +69,8 @@ public class Robot extends IterativeRobot {
 	
 	public void zeroAllSensors(){
 		robot.drive.zeroSensors();
-		robotState.reset(Timer.getFPGATimestamp(), new RigidTransform2d(new Translation2d(0, 0), Rotation2d.fromDegrees(180)));
+		robot.pidgey.setAngle(0);
+		robotState.reset(Timer.getFPGATimestamp(), new RigidTransform2d(new Translation2d(0, 0), Rotation2d.fromDegrees(0)));
 	}
 	
 	public void outputAllToSmartDashboard(){
@@ -73,6 +81,7 @@ public class Robot extends IterativeRobot {
 		robot.hanger.outputToSmartDashboard();
 		robot.shooter.outputToSmartDashboard();
 		robotState.outputToSmartDashboard();
+		robot.pidgey.outputToSmartDashboard();
 	}
 	
 	public void stopAll(){
@@ -98,6 +107,7 @@ public class Robot extends IterativeRobot {
 			CrashTracker.logDisabledInit();
 			
 			enabledLooper.stop();
+			disabledLooper.start();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw(t);
@@ -111,6 +121,7 @@ public class Robot extends IterativeRobot {
 			
 			zeroAllSensors();
 			
+			disabledLooper.stop();
 			enabledLooper.start();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
@@ -123,6 +134,7 @@ public class Robot extends IterativeRobot {
 		try{
 			CrashTracker.logTeleopInit();
 			
+			disabledLooper.stop();
 			enabledLooper.start();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
@@ -158,7 +170,9 @@ public class Robot extends IterativeRobot {
 			driverJoystick.update();
 			coDriver.update();
 			
-			if(robot.drive.currentControlState() == Drive.DriveControlState.OPEN_LOOP){
+			if(robot.gearIntake.isScoring()){
+				robot.drive.setOpenLoop(DriveSignal.NEUTRAL);
+			}else if(robot.drive.currentControlState() == Drive.DriveControlState.OPEN_LOOP){
 				robot.drive.setOpenLoop(cheesyDriveHelper.cheesyDrive(-driverJoystick.getYAxis(), 
 						wheel.getWheelTurn(), wheel.leftBumper.isBeingPressed(), true));
 			}else if(Math.abs(driverJoystick.getYAxis()) > 0.5 || wheel.leftBumper.isBeingPressed()){
@@ -182,6 +196,10 @@ public class Robot extends IterativeRobot {
 				robot.gearIntake.score();
 			}
 			
+			if(robot.gearIntake.needsToNotify()){
+				coDriver.rumble(2, 1);
+			}
+			
 			if(coDriver.rightTrigger.isBeingPressed()){
 				robot.dyeRotors.startFeeding();
 			}
@@ -191,7 +209,7 @@ public class Robot extends IterativeRobot {
 			}
 			
 			if(coDriver.leftTrigger.wasPressed()){
-				robot.shooter.setSpeed(Constants.kShootingSpeed);
+				robot.shooter.setState(Shooter.State.SpinUp);
 			}
 			
 			if(coDriver.yButton.wasPressed()){
@@ -200,7 +218,9 @@ public class Robot extends IterativeRobot {
 			}
 			
 			if(coDriver.xButton.wasPressed()){
-				PathContainer pc = new StartToCenterGearBlue();
+				PathContainer pc = new StartToBoilerBlue();
+				RobotState.getInstance().reset(Timer.getFPGATimestamp(), pc.getStartPose());
+				robot.pidgey.setAngle((int)pc.getStartPose().getRotation().getDegrees());
 				robot.drive.setWantDrivePath(pc.buildPath(), pc.isReversed());
 			}
 			

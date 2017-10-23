@@ -2,6 +2,7 @@ package com.team254.lib.util.control;
 
 import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Twist2d;
+import com.team254.lib.util.motion.HeadingProfileFollower;
 import com.team254.lib.util.motion.MotionProfileConstraints;
 import com.team254.lib.util.motion.MotionProfileGoal;
 import com.team254.lib.util.motion.MotionProfileGoal.CompletionBehavior;
@@ -73,7 +74,7 @@ public class PathFollower {
 
     AdaptivePurePursuitController mSteeringController;
     Twist2d mLastSteeringDelta;
-    ProfileFollower mVelocityController;
+    HeadingProfileFollower mVelocityController;
     final double mInertiaGain;
     boolean overrideFinished = false;
     boolean doneSteering = false;
@@ -93,7 +94,7 @@ public class PathFollower {
     public PathFollower(Path path, boolean reversed, Parameters parameters) {
         mSteeringController = new AdaptivePurePursuitController(path, reversed, parameters.lookahead);
         mLastSteeringDelta = Twist2d.identity();
-        mVelocityController = new ProfileFollower(parameters.profile_kp, parameters.profile_ki, parameters.profile_kv,
+        mVelocityController = new HeadingProfileFollower(parameters.profile_kp, parameters.profile_ki, parameters.profile_kv,
                 parameters.profile_kffv, parameters.profile_kffa);
         mVelocityController.setConstraints(
                 new MotionProfileConstraints(parameters.profile_max_abs_vel, parameters.profile_max_abs_acc));

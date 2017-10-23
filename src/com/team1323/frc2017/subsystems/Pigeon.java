@@ -12,6 +12,8 @@ public class Pigeon {
     private double currentAngle = 0.0;
     boolean pidgeonIsGood = false;
     double currentAngularRate = 0.0;
+    PigeonImu.FusionStatus fusionStatus = new PigeonImu.FusionStatus();
+    
 	public Pigeon(){
 		hanger = Hanger.getInstance();
 		try{
@@ -30,7 +32,7 @@ public class Pigeon {
 	}
 	public void update(){
 		try{
-			PigeonImu.GeneralStatus genStatus = new PigeonImu.GeneralStatus();
+			/*PigeonImu.GeneralStatus genStatus = new PigeonImu.GeneralStatus();
 			PigeonImu.FusionStatus fusionStatus = new PigeonImu.FusionStatus();
 			double [] xyz_dps = new double [3];
 			currentAngle = pidgey.GetFusedHeading(fusionStatus);
@@ -47,7 +49,7 @@ public class Pigeon {
 			
 			double [] ypr = new double [3];
 			pidgey.GetYawPitchRoll(ypr);
-			//currentAngle = -ypr[0];
+			//currentAngle = -ypr[0];*/
 			
 		}catch(Exception e){
 			System.out.println(e);
@@ -71,10 +73,10 @@ public class Pigeon {
 		return pigeonLoop;
 	}
 	public boolean isGood(){
-		return pidgeonIsGood;
+		return (pidgey.GetState() == PigeonState.Ready) ? true : false;
 	}
 	public double getAngle(){
-		return currentAngle;
+		return pidgey.GetFusedHeading(fusionStatus);
 	}
 	public double getAngularRate(){
 		return currentAngularRate;
@@ -87,6 +89,6 @@ public class Pigeon {
 		SmartDashboard.putNumber(" Heading Angle ", getAngle());
 		SmartDashboard.putNumber(" Pigeon Rate ", getAngularRate());
 		SmartDashboard.putBoolean(" Pigeon Good ", isGood());
-		SmartDashboard.putNumber("Pigeon Temp", pidgey.GetTemp());
+		//SmartDashboard.putNumber("Pigeon Temp", pidgey.GetTemp());
 	}
 }
