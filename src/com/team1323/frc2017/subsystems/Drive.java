@@ -121,6 +121,15 @@ public class Drive extends Subsystem{
 		rightMaster.reverseSensor(false);
 		rightMaster.reverseOutput(false);
 		
+		leftMaster.setCurrentLimit(40);
+		leftMaster.EnableCurrentLimit(true);
+		rightMaster.setCurrentLimit(40);
+		rightMaster.EnableCurrentLimit(true);
+		leftSlave.setCurrentLimit(40);
+		leftSlave.EnableCurrentLimit(true);
+		rightSlave.setCurrentLimit(40);
+		rightSlave.EnableCurrentLimit(true);
+		
 		leftMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 5);
 		rightMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 5);
 		
@@ -181,13 +190,13 @@ public class Drive extends Subsystem{
                     }
                     // fallthrough intended
                 case TURN_TO_HEADING:
-                    //updateTurnToHeading(timestamp);
+                    updateTurnToHeading(timestamp);
                     return;
                 case DRIVE_TOWARDS_GOAL_COARSE_ALIGN:
-                    //updateDriveTowardsGoalCoarseAlign(timestamp);
+                    updateDriveTowardsGoalCoarseAlign(timestamp);
                     return;
                 case DRIVE_TOWARDS_GOAL_APPROACH:
-                    //updateDriveTowardsGoalApproach(timestamp);
+                    updateDriveTowardsGoalApproach(timestamp);
                     return;
                 default:
                     System.out.println("Unexpected drive control state: " + mDriveControlState);
@@ -217,6 +226,8 @@ public class Drive extends Subsystem{
 			rightMaster.changeControlMode(TalonControlMode.PercentVbus);
 			leftMaster.configNominalOutputVoltage(0.0, 0.0);
             rightMaster.configNominalOutputVoltage(0.0, 0.0);
+            leftMaster.setVoltageRampRate(48.0);
+            rightMaster.setVoltageRampRate(48.0);
 			mDriveControlState = DriveControlState.OPEN_LOOP;
 			setBrakeMode(false);
 		}
@@ -445,11 +456,12 @@ public class Drive extends Subsystem{
             if (Util.epsilonEquals(error, 0.0, kGoalPosTolerance)) {
                 // We are on target. Switch back to auto-aim.
                 mDriveControlState = DriveControlState.AIM_TO_GOAL;
-                RobotState.getInstance().resetVision();
+                //RobotState.getInstance().resetVision();
                 mIsApproaching = false;
                 updatePositionSetpoint(getLeftDistanceInches(), getRightDistanceInches());
                 return;
             }
+            System.out.println(error);
             updatePositionSetpoint(getLeftDistanceInches() + error, getRightDistanceInches() + error);
         } else {
             updatePositionSetpoint(getLeftDistanceInches(), getRightDistanceInches());
@@ -567,10 +579,10 @@ public class Drive extends Subsystem{
     }
 
     public synchronized boolean isDoneWithTurn() {
-        if (mDriveControlState == DriveControlState.TURN_TO_HEADING) {
+        if (mDriveControlState == DriveControlState.AIM_TO_GOAL) {
             return mIsOnTarget;
         } else {
-            System.out.println("Robot is not in turn to heading mode");
+            //System.out.println("Robot is not in turn to heading mode");
             return false;
         }
     }
@@ -633,6 +645,12 @@ public class Drive extends Subsystem{
 		
 		SmartDashboard.putNumber("Left Drive Setpoint", leftMaster.getSetpoint());
 		SmartDashboard.putNumber("Right Drive Setpoint", rightMaster.getSetpoint());
+		
+		SmartDashboard.putBoolean("Drive Done With Turn", isDoneWithTurn());
+		
+		if(rightMaster.getEncVelocity() > 5000){
+			System.out.println(rightMaster.getEncVelocity());
+		}
 	}
 	
 	@Override

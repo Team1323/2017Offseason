@@ -34,7 +34,7 @@ public class StartToCenterGearBlue implements PathContainer {
 
     @Override
     public boolean isReversed() {
-        return false;
+        return true;
     }
     // WAYPOINT_DATA:
     // [{"position":{"x":16,"y":160},"speed":0,"radius":0,"comment":""},{"position":{"x":90,"y":160},"speed":60,"radius":0,"comment":""}]

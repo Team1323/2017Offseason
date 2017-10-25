@@ -1,17 +1,17 @@
 package com.team1323.frc2017.vision;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 /**
- * VisionUpdate contains the various attributes outputted by the vision system,
- * namely a list of targets and the timestamp at which it was captured.
+ * VisionUpdate contains the various attributes outputted by the vision system, namely a list of targets and the
+ * timestamp at which it was captured.
  */
 public class VisionUpdate {
     protected boolean valid = false;
@@ -43,12 +43,12 @@ public class VisionUpdate {
      * @param Capture
      *            timestamp
      * @param JSON
-     *            blob with update string, example: { "capturedAgoMs" : 100,
-     *            "targets": [{"y": 5.4, "z": 5.5}] }
+     *            blob with update string, example: { "capturedAgoMs" : 100, "targets": [{"y": 5.4, "z": 5.5}] }
      * @return VisionUpdate object
+     * @throws org.json.simple.parser.ParseException 
      */
     //
-    public static VisionUpdate generateFromJsonString(double current_time, String updateString) {
+    public static VisionUpdate generateFromJsonString(double current_time, String updateString) throws org.json.simple.parser.ParseException {
         VisionUpdate update = new VisionUpdate();
         try {
             JSONObject j = (JSONObject) parser.parse(updateString);
@@ -73,9 +73,6 @@ public class VisionUpdate {
             }
             update.targets = targetInfos;
             update.valid = true;
-        } catch (ParseException e) {
-            System.err.println("Parse error: " + e);
-            System.err.println(updateString);
         } catch (ClassCastException e) {
             System.err.println("Data type error: " + e);
             System.err.println(updateString);

@@ -1,6 +1,7 @@
 package com.team1323.frc2017.subsystems;
 
 import com.ctre.CANTalon;
+import com.ctre.CANTalon.StatusFrameRate;
 import com.ctre.CANTalon.TalonControlMode;
 import com.team1323.frc2017.Ports;
 import com.team1323.frc2017.loops.Loop;
@@ -40,6 +41,7 @@ public class GearIntake extends Subsystem{
 		intakeMotor = new CANTalon(Ports.GEAR_INTAKE);
 		intakeMotor.setCurrentLimit(15);
 		intakeMotor.EnableCurrentLimit(true);
+		intakeMotor.setStatusFrameRateMs(StatusFrameRate.Feedback, 1000);
 		intakeMotor.changeControlMode(TalonControlMode.PercentVbus);
 		gearFlaps = new Solenoid(20, Ports.GEAR_FLAPS);
 		banner = new DigitalInput(0);
@@ -171,7 +173,7 @@ public class GearIntake extends Subsystem{
 	@Override
 	public void outputToSmartDashboard(){
 		SmartDashboard.putNumber("Gear Intake Voltage", intakeMotor.getOutputVoltage());
-		SmartDashboard.putNumber("Gear Intake Current", intakeMotor.getOutputCurrent());
+		//SmartDashboard.putNumber("Gear Intake Current", intakeMotor.getOutputCurrent());
 		SmartDashboard.putBoolean("Gear Intake Banner", banner.get());
 	}
 }

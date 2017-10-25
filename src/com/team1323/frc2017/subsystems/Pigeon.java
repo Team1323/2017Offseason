@@ -32,14 +32,14 @@ public class Pigeon {
 	}
 	public void update(){
 		try{
-			/*PigeonImu.GeneralStatus genStatus = new PigeonImu.GeneralStatus();
-			PigeonImu.FusionStatus fusionStatus = new PigeonImu.FusionStatus();
-			double [] xyz_dps = new double [3];
+			//PigeonImu.GeneralStatus genStatus = new PigeonImu.GeneralStatus();
+			//PigeonImu.FusionStatus fusionStatus = new PigeonImu.FusionStatus();
+			//double [] xyz_dps = new double [3];
 			currentAngle = pidgey.GetFusedHeading(fusionStatus);
-			pidgey.GetGeneralStatus(genStatus);
-			pidgey.GetRawGyro(xyz_dps);
+			//pidgey.GetGeneralStatus(genStatus);
+			//pidgey.GetRawGyro(xyz_dps);
 			pidgeonIsGood = (pidgey.GetState() == PigeonState.Ready) ? true : false;
-			currentAngularRate = -xyz_dps[2];
+			/*currentAngularRate = -xyz_dps[2];
 			
 			short [] ba_xyz = new short [3];
 			pidgey.GetBiasedAccelerometer(ba_xyz);
@@ -73,15 +73,15 @@ public class Pigeon {
 		return pigeonLoop;
 	}
 	public boolean isGood(){
-		return (pidgey.GetState() == PigeonState.Ready) ? true : false;
+		return pidgeonIsGood;
 	}
 	public double getAngle(){
-		return pidgey.GetFusedHeading(fusionStatus);
+		return currentAngle;
 	}
 	public double getAngularRate(){
 		return currentAngularRate;
 	}
-	public void setAngle(int i){
+	public void setAngle(double i){
 		pidgey.SetFusedHeading(i);
 		pidgey.SetYaw(i);
 	}

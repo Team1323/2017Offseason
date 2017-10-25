@@ -1,6 +1,7 @@
 package com.team1323.frc2017.subsystems;
 
 import com.ctre.CANTalon;
+import com.ctre.CANTalon.StatusFrameRate;
 import com.ctre.CANTalon.TalonControlMode;
 import com.team1323.frc2017.Ports;
 
@@ -28,6 +29,8 @@ public class Hanger extends Subsystem{
 		motor1.enableBrakeMode(true);
 		motor2.enableBrakeMode(true);
 		
+		motor2.setStatusFrameRateMs(StatusFrameRate.Feedback, 1000);
+		
 		motor1.changeControlMode(TalonControlMode.PercentVbus);
 		motor2.changeControlMode(TalonControlMode.PercentVbus);
 	}
@@ -51,7 +54,7 @@ public class Hanger extends Subsystem{
 	@Override
 	public void outputToSmartDashboard(){
 		SmartDashboard.putNumber("Hanger 1 Current", motor1.getOutputCurrent());
-		SmartDashboard.putNumber("Hanger 2 Current", motor2.getOutputCurrent());
+		//SmartDashboard.putNumber("Hanger 2 Current", motor2.getOutputCurrent());
 		SmartDashboard.putNumber("Hanger 1 Voltage", motor1.getOutputVoltage());
 		SmartDashboard.putNumber("Hanger 2 Voltage", motor2.getOutputVoltage());
 	}

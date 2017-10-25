@@ -8,6 +8,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import org.json.simple.parser.ParseException;
+
 import com.team1323.frc2017.Constants;
 import com.team1323.frc2017.vision.messages.HeartbeatMessage;
 import com.team1323.frc2017.vision.messages.OffWireMessage;
@@ -85,13 +87,19 @@ public class VisionServer extends CrashTrackingRunnable {
 
         public void handleMessage(VisionMessage message, double timestamp) {
             if ("targets".equals(message.getType())) {
-                VisionUpdate update = VisionUpdate.generateFromJsonString(timestamp, message.getMessage());
-                receivers.removeAll(Collections.singleton(null));
-                if (update.isValid()) {
-                    for (VisionUpdateReceiver receiver : receivers) {
-                        receiver.gotUpdate(update);
-                    }
-                }
+                VisionUpdate update;
+				try {
+					update = VisionUpdate.generateFromJsonString(timestamp, message.getMessage());
+					receivers.removeAll(Collections.singleton(null));
+	                if (update.isValid()) {
+	                    for (VisionUpdateReceiver receiver : receivers) {
+	                        receiver.gotUpdate(update);
+	                    }
+	                }
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
             if ("heartbeat".equals(message.getType())) {
                 send(HeartbeatMessage.getInstance());

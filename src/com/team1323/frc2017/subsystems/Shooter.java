@@ -31,7 +31,7 @@ public class Shooter extends Subsystem{
 		leftMaster.reverseOutput(false);
 		leftMaster.reverseSensor(false);
 		leftMaster.setPID(4.0, 0.00, 40.0, 0.0285, 0, 0.0, 0);
-		leftMaster.setPID(2.0, 0.0, 0.0, 0.028, 0, 0.0, 1);
+		leftMaster.setPID(8.0, 0.0, 0.0, 0.028, 0, 0.0, 1);
 		leftMaster.setProfile(1);
 		leftMaster.configNominalOutputVoltage(+0f, -0f);
 		leftMaster.configPeakOutputVoltage(+12f, -0f);
@@ -55,6 +55,8 @@ public class Shooter extends Subsystem{
 		rightSlave2.changeControlMode(TalonControlMode.Follower);
 		rightSlave2.set(Ports.SHOOTER_MASTER);
 		
+		
+		
 		if(leftMaster.isSensorPresent(FeedbackDevice.CtreMagEncoder_Relative) != 
 				CANTalon.FeedbackDeviceStatus.FeedbackStatusPresent){
 			DriverStation.reportWarning("Could not detect shooter encoder!", false);
@@ -62,7 +64,7 @@ public class Shooter extends Subsystem{
 	}
 	
 	public enum State{
-		Off, SpinUp, Hold
+		Off, SpinUp, Hold, OverCompensate
 	}
 	private State currentState = State.Off;
 	public State getState(){
@@ -86,13 +88,22 @@ public class Shooter extends Subsystem{
 				case Off:
 					setOpenLoop(0.0);
 					break;
-				case SpinUp:
+				case OverCompensate:
 					leftMaster.setVoltageRampRate(240.0);
+					setSpeed(Constants.kShootingSpeed + 300);
+					break;
+				case SpinUp:
+					leftMaster.setVoltageRampRate(60.0);
 					setSpeed(Constants.kShootingSpeed);
 					if(isOnTarget())setState(State.Hold);
 					break;
 				case Hold:
 					leftMaster.setVoltageRampRate(0.0);
+					if(Constants.kShootingSpeed - leftMaster.getSpeed() >= Constants.kShooterAllowableError){
+						setSpeed(Constants.kShootingSpeed + 100);
+					}else if(Constants.kShootingSpeed - leftMaster.getSpeed() <= -100){
+						setSpeed(Constants.kShootingSpeed);
+					}
 					break;
 				}
 			}
@@ -119,9 +130,13 @@ public class Shooter extends Subsystem{
 		leftMaster.set(percent);
 	}
 	
+	public double getError(){
+		return leftMaster.getSetpoint() - leftMaster.getSpeed();
+	}
+	
 	public boolean isOnTarget(){
 		return leftMaster.getControlMode() == CANTalon.TalonControlMode.Speed &&
-				Math.abs(leftMaster.getSetpoint() - leftMaster.getSpeed()) < Constants.kShooterAllowableError;
+				Math.abs(getError()) < Constants.kShooterAllowableError;
 	}
 	
 	public boolean isShooting(){
@@ -131,6 +146,7 @@ public class Shooter extends Subsystem{
 	
 	@Override
 	public synchronized void stop(){
+		setState(State.Off);
 		setOpenLoop(0);
 	}
 	

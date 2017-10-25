@@ -4,10 +4,11 @@ import com.team1323.frc2017.loops.Looper;
 import com.team1323.frc2017.loops.RobotStateEstimator;
 import com.team1323.frc2017.loops.VisionProcessor;
 import com.team1323.frc2017.paths.PathContainer;
-import com.team1323.frc2017.paths.StartToBoilerBlue;
+import com.team1323.frc2017.paths.StartToHopperBlue;
 import com.team1323.frc2017.subsystems.Drive;
 import com.team1323.frc2017.subsystems.GearIntake;
 import com.team1323.frc2017.subsystems.Shooter;
+import com.team1323.frc2017.vision.VisionServer;
 import com.team1323.io.LogitechJoystick;
 import com.team1323.io.SteeringWheel;
 import com.team1323.io.Xbox;
@@ -38,6 +39,10 @@ public class Robot extends IterativeRobot {
 	
 	Looper enabledLooper = new Looper();
 	Looper disabledLooper = new Looper();
+	
+	private VisionServer mVisionServer = VisionServer.getInstance();
+	
+	private boolean dyeRotorsCanTurnOn = false;
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -50,6 +55,7 @@ public class Robot extends IterativeRobot {
 			wheel = new SteeringWheel(0);
 			driverJoystick = new LogitechJoystick(1);
 			coDriver = new Xbox(2);
+			robot.initCamera();
 			zeroAllSensors();
 			
 			enabledLooper.register(robot.drive.getLoop());
@@ -61,6 +67,8 @@ public class Robot extends IterativeRobot {
 			
 			disabledLooper.register(robot.pidgey.getLoop());
 			disabledLooper.register(VisionProcessor.getInstance());
+			
+			mVisionServer.addVisionUpdateReceiver(VisionProcessor.getInstance());
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw(t);
@@ -82,6 +90,7 @@ public class Robot extends IterativeRobot {
 		robot.shooter.outputToSmartDashboard();
 		robotState.outputToSmartDashboard();
 		robot.pidgey.outputToSmartDashboard();
+		mVisionServer.outputToSmartDashboard();
 	}
 	
 	public void stopAll(){
@@ -134,6 +143,7 @@ public class Robot extends IterativeRobot {
 		try{
 			CrashTracker.logTeleopInit();
 			
+			dyeRotorsCanTurnOn = false;
 			disabledLooper.stop();
 			enabledLooper.start();
 		}catch(Throwable t){
@@ -180,10 +190,13 @@ public class Robot extends IterativeRobot {
 						wheel.getWheelTurn(), wheel.leftBumper.isBeingPressed(), true));
 			}
 			
-			if(coDriver.rightBumper.wasPressed()){
+			if(coDriver.rightBumper.wasPressed() || driverJoystick.bottomLeft.isBeingPressed()){
 				robot.ballIntake.forward();
 			}else if(coDriver.leftBumper.wasPressed()){
 				robot.ballIntake.reverse();
+			}else{
+				if(robot.ballIntake.isIntaking)
+				robot.ballIntake.stop();
 			}
 			
 			if(coDriver.aButton.isBeingPressed() || driverJoystick.thumbButton.isBeingPressed()){
@@ -200,8 +213,11 @@ public class Robot extends IterativeRobot {
 				coDriver.rumble(2, 1);
 			}
 			
-			if(coDriver.rightTrigger.isBeingPressed()){
+			if((coDriver.rightTrigger.isBeingPressed() || (dyeRotorsCanTurnOn && robot.drive.isDoneWithTurn())) && !robot.dyeRotors.isFeeding()){
 				robot.dyeRotors.startFeeding();
+				if(robot.shooter.getState() == Shooter.State.OverCompensate){
+					robot.shooter.setState(Shooter.State.SpinUp);
+				}
 			}
 			
 			if(coDriver.startButton.isBeingPressed()){
@@ -209,23 +225,40 @@ public class Robot extends IterativeRobot {
 			}
 			
 			if(coDriver.leftTrigger.wasPressed()){
-				robot.shooter.setState(Shooter.State.SpinUp);
+				robot.shooter.setState(Shooter.State.OverCompensate);
 			}
 			
-			if(coDriver.yButton.wasPressed()){
+			if(coDriver.yButton.isBeingPressed()){
 				robot.dyeRotors.stopArms();
 				robot.dyeRotors.reverseRollers();
+				dyeRotorsCanTurnOn = false;
+			}else if(robot.shooter.isOnTarget()){
+				dyeRotorsCanTurnOn = true;
 			}
 			
-			if(coDriver.xButton.wasPressed()){
-				PathContainer pc = new StartToBoilerBlue();
+			if(robot.drive.isDoneWithTurn() && !robot.shooter.isShooting()){
+				robot.shooter.setState(Shooter.State.OverCompensate);
+			}
+			
+			if(coDriver.bButton.wasPressed()){
+				PathContainer pc = new StartToHopperBlue();
 				RobotState.getInstance().reset(Timer.getFPGATimestamp(), pc.getStartPose());
-				robot.pidgey.setAngle((int)pc.getStartPose().getRotation().getDegrees());
+				robot.pidgey.setAngle(pc.getStartPose().getRotation().getDegrees());
 				robot.drive.setWantDrivePath(pc.buildPath(), pc.isReversed());
 			}
 			
-			if(coDriver.backButton.wasPressed()){
+			if(coDriver.xButton.wasPressed()){
+				robot.drive.setWantDriveTowardsGoal();
+			}
+			
+			if(coDriver.leftCenterClick.wasPressed()){
+				mVisionServer.requestAppRestart();
+			}
+			
+			if(coDriver.backButton.wasPressed() || wheel.yButton.isBeingPressed()){
 				coDriverStop();
+				dyeRotorsCanTurnOn = false;
+				robot.drive.setOpenLoop(DriveSignal.NEUTRAL);
 			}
 			
 			outputAllToSmartDashboard();

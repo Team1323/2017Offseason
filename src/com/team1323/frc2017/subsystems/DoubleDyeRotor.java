@@ -11,6 +11,10 @@ public class DoubleDyeRotor extends Subsystem{
 	private CANTalon leftInner, rightInner, arm, slideFeeder;
 	
 	private boolean isInThread = false;
+	private boolean isFeeding = false;
+	public boolean isFeeding(){
+		return isFeeding;
+	}
 	
 	private static DoubleDyeRotor instance = null;
 	public static DoubleDyeRotor getInstance(){
@@ -63,6 +67,7 @@ public class DoubleDyeRotor extends Subsystem{
 	}
 	
 	public void reverseRollers(){
+		isFeeding = false;
 		rightInner.set(-1.0);
 		leftInner.set(1.0);
 	}
@@ -98,11 +103,12 @@ public class DoubleDyeRotor extends Subsystem{
 	public class StartFeeding extends Thread{
 		public void run(){
 			isInThread = true;
+			isFeeding = true;
 			rightRollerForward();
 			leftRollerForward();
 			slideFeederForward();
 			try {
-				Thread.sleep(500);
+				Thread.sleep(250);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -114,6 +120,7 @@ public class DoubleDyeRotor extends Subsystem{
 	
 	@Override
 	public synchronized void stop(){
+		isFeeding = false;
 		rightInner.set(0);
 		leftInner.set(0);
 		arm.set(0);

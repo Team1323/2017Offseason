@@ -8,7 +8,7 @@ import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
-public class StartToBoilerBlue implements PathContainer{
+public class StartToHopperBlue implements PathContainer{
 	@Override
     public Path buildPath() {
         ArrayList<Waypoint> sWaypoints = new ArrayList<Waypoint>();
