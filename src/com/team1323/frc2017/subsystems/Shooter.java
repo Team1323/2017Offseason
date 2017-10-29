@@ -100,8 +100,8 @@ public class Shooter extends Subsystem{
 				case Hold:
 					leftMaster.setVoltageRampRate(0.0);
 					if(Constants.kShootingSpeed - leftMaster.getSpeed() >= Constants.kShooterAllowableError){
-						setSpeed(Constants.kShootingSpeed + 100);
-					}else if(Constants.kShootingSpeed - leftMaster.getSpeed() <= -100){
+						setSpeed(Constants.kShootingSpeed + 50);
+					}else if(Constants.kShootingSpeed - leftMaster.getSpeed() <= -25){
 						setSpeed(Constants.kShootingSpeed);
 					}
 					break;

@@ -84,6 +84,7 @@ public class Pigeon {
 	public void setAngle(double i){
 		pidgey.SetFusedHeading(i);
 		pidgey.SetYaw(i);
+		System.out.println("Pigeon Angle Set");
 	}
 	public void outputToSmartDashboard(){
 		SmartDashboard.putNumber(" Heading Angle ", getAngle());

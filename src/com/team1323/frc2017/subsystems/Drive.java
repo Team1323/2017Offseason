@@ -49,7 +49,9 @@ public class Drive extends Subsystem{
         AIM_TO_GOAL, // turn to face the boiler
         TURN_TO_HEADING, // turn in place
         DRIVE_TOWARDS_GOAL_COARSE_ALIGN, // turn to face the boiler, then DRIVE_TOWARDS_GOAL_COARSE_ALIGN
-        DRIVE_TOWARDS_GOAL_APPROACH // drive forwards until we are at optimal shooting distance
+        DRIVE_TOWARDS_GOAL_APPROACH, // drive forwards until we are at optimal shooting distance
+        MOVE_DISTANCE,
+        BLIND_TURN
     }
 
     /**
@@ -69,7 +71,9 @@ public class Drive extends Subsystem{
         if (state == DriveControlState.AIM_TO_GOAL ||
                 state == DriveControlState.TURN_TO_HEADING ||
                 state == DriveControlState.DRIVE_TOWARDS_GOAL_COARSE_ALIGN ||
-                state == DriveControlState.DRIVE_TOWARDS_GOAL_APPROACH) {
+                state == DriveControlState.DRIVE_TOWARDS_GOAL_APPROACH ||
+                state == DriveControlState.MOVE_DISTANCE ||
+                state == DriveControlState.BLIND_TURN) {
             return true;
         }
         return false;
@@ -79,6 +83,9 @@ public class Drive extends Subsystem{
     private DriveControlState mDriveControlState;
     public DriveControlState currentControlState(){
     	return mDriveControlState;
+    }
+    public void setState(DriveControlState state){
+    	mDriveControlState = state;
     }
     
     // Controllers
@@ -121,13 +128,13 @@ public class Drive extends Subsystem{
 		rightMaster.reverseSensor(false);
 		rightMaster.reverseOutput(false);
 		
-		leftMaster.setCurrentLimit(40);
+		leftMaster.setCurrentLimit(70);
 		leftMaster.EnableCurrentLimit(true);
-		rightMaster.setCurrentLimit(40);
+		rightMaster.setCurrentLimit(70);
 		rightMaster.EnableCurrentLimit(true);
-		leftSlave.setCurrentLimit(40);
+		leftSlave.setCurrentLimit(70);
 		leftSlave.EnableCurrentLimit(true);
-		rightSlave.setCurrentLimit(40);
+		rightSlave.setCurrentLimit(70);
 		rightSlave.EnableCurrentLimit(true);
 		
 		leftMaster.setStatusFrameRateMs(CANTalon.StatusFrameRate.Feedback, 5);
@@ -179,6 +186,10 @@ public class Drive extends Subsystem{
 					return;
 				case VELOCITY_SETPOINT:
                     return;
+				case MOVE_DISTANCE:
+					return;
+				case BLIND_TURN:
+					return;
                 case PATH_FOLLOWING:
                     if (mPathFollower != null) {
                         updatePathFollower(timestamp);
@@ -257,12 +268,12 @@ public class Drive extends Subsystem{
     
     public synchronized void setPositionSetpoint(double left_delta_inches, double right_delta_inches){
     	configureTalonsForPositionControl();
-    	mDriveControlState = DriveControlState.DRIVE_TOWARDS_GOAL_APPROACH;
+    	mDriveControlState = DriveControlState.MOVE_DISTANCE;
     	updatePositionSetpoint(getLeftDistanceInches() + left_delta_inches, getRightDistanceInches() + right_delta_inches);
     }
     public synchronized void setPositionSetpoint(Rotation2d delta_heading){
     	configureTalonsForPositionControl();
-    	mDriveControlState = DriveControlState.AIM_TO_GOAL;
+    	mDriveControlState = DriveControlState.BLIND_TURN;
     	Kinematics.DriveVelocity wheel_delta = Kinematics.inverseKinematics(new Twist2d(0, 0, delta_heading.getRadians()));
     	updatePositionSetpoint(getLeftDistanceInches() + wheel_delta.left, getRightDistanceInches() + wheel_delta.right);
     }
@@ -579,13 +590,19 @@ public class Drive extends Subsystem{
     }
 
     public synchronized boolean isDoneWithTurn() {
-        if (mDriveControlState == DriveControlState.AIM_TO_GOAL) {
+        if (mDriveControlState == DriveControlState.AIM_TO_GOAL || 
+        		mDriveControlState == DriveControlState.TURN_TO_HEADING) {
             return mIsOnTarget;
         } else {
             //System.out.println("Robot is not in turn to heading mode");
             return false;
         }
     }
+    
+    public synchronized boolean distanceIsOnTarget(){
+    	return usesTalonPositionControl(mDriveControlState) && 
+    			Math.abs(leftMaster.getSetpoint() - leftMaster.getPosition()) < 1.0;
+    	}
 
     public synchronized boolean hasPassedMarker(String marker) {
         if (mDriveControlState == DriveControlState.PATH_FOLLOWING && mPathFollower != null) {
@@ -648,8 +665,8 @@ public class Drive extends Subsystem{
 		
 		SmartDashboard.putBoolean("Drive Done With Turn", isDoneWithTurn());
 		
-		if(rightMaster.getEncVelocity() > 5000){
-			System.out.println(rightMaster.getEncVelocity());
+		if(getRightVelocityInchesPerSec() > 40){
+			System.out.println(getRightVelocityInchesPerSec());
 		}
 	}
 	

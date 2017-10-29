@@ -12,16 +12,16 @@ public class StartToHopperBlue implements PathContainer{
 	@Override
     public Path buildPath() {
         ArrayList<Waypoint> sWaypoints = new ArrayList<Waypoint>();
-        sWaypoints.add(new Waypoint(16.5, -19.75, 0, 0));
-        sWaypoints.add(new Waypoint(85, -19.75, 35, 60));
-        sWaypoints.add(new Waypoint(85, 32, 0, 60));
+        sWaypoints.add(new Waypoint(17.5, -20.0, 0, 0));
+        sWaypoints.add(new Waypoint(108, -20.0, 30, 60));
+        sWaypoints.add(new Waypoint(108, 18.0, 0, 42));
 
         return PathBuilder.buildPathFromWaypoints(sWaypoints);
     }
 
     @Override
     public RigidTransform2d getStartPose() {
-        return new RigidTransform2d(new Translation2d(0, 0), Rotation2d.fromDegrees(0.0));
+        return new RigidTransform2d(new Translation2d(17.5, -20.0), Rotation2d.fromDegrees(0.0));
     }
 
     @Override

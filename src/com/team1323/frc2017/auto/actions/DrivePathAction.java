@@ -17,15 +17,17 @@ public class DrivePathAction implements Action {
     private PathContainer mPathContainer;
     private Path mPath;
     private Drive mDrive = Drive.getInstance();
+    private boolean waitForCompletion = false;
 
-    public DrivePathAction(PathContainer p) {
+    public DrivePathAction(PathContainer p, boolean waitForCompletion) {
         mPathContainer = p;
         mPath = mPathContainer.buildPath();
+        this.waitForCompletion = waitForCompletion;
     }
 
     @Override
     public boolean isFinished() {
-        return mDrive.isDoneWithPath();
+        return mDrive.isDoneWithPath() || !waitForCompletion;
     }
 
     @Override

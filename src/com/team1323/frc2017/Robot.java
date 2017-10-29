@@ -1,5 +1,7 @@
 package com.team1323.frc2017;
 
+import com.team1323.frc2017.auto.AutoModeExecuter;
+import com.team1323.frc2017.auto.SmartDashboardInteractions;
 import com.team1323.frc2017.loops.Looper;
 import com.team1323.frc2017.loops.RobotStateEstimator;
 import com.team1323.frc2017.loops.VisionProcessor;
@@ -42,6 +44,10 @@ public class Robot extends IterativeRobot {
 	
 	private VisionServer mVisionServer = VisionServer.getInstance();
 	
+	private SmartDashboardInteractions smartDashboardInteractions = new SmartDashboardInteractions();
+	
+	private AutoModeExecuter mAutoModeExecuter = null;
+	
 	private boolean dyeRotorsCanTurnOn = false;
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -57,6 +63,14 @@ public class Robot extends IterativeRobot {
 			coDriver = new Xbox(2);
 			robot.initCamera();
 			zeroAllSensors();
+			
+			smartDashboardInteractions.initWithDefaults();
+			
+			if(smartDashboardInteractions.getSelectedMode().equals("Hopper")){
+				robot.pidgey.setAngle(0);
+			}else if(smartDashboardInteractions.getSelectedMode().equals("Middle Gear")){
+				robot.pidgey.setAngle(180);
+			}
 			
 			enabledLooper.register(robot.drive.getLoop());
 			enabledLooper.register(robot.gearIntake.getLoop());
@@ -77,7 +91,6 @@ public class Robot extends IterativeRobot {
 	
 	public void zeroAllSensors(){
 		robot.drive.zeroSensors();
-		robot.pidgey.setAngle(0);
 		robotState.reset(Timer.getFPGATimestamp(), new RigidTransform2d(new Translation2d(0, 0), Rotation2d.fromDegrees(0)));
 	}
 	
@@ -115,6 +128,11 @@ public class Robot extends IterativeRobot {
 		try{
 			CrashTracker.logDisabledInit();
 			
+			if (mAutoModeExecuter != null) {
+                mAutoModeExecuter.stop();
+            }
+			mAutoModeExecuter = null;
+			
 			enabledLooper.stop();
 			disabledLooper.start();
 		}catch(Throwable t){
@@ -130,8 +148,17 @@ public class Robot extends IterativeRobot {
 			
 			zeroAllSensors();
 			
+			if (mAutoModeExecuter != null) {
+                mAutoModeExecuter.stop();
+            }
+			mAutoModeExecuter = null;
+			
 			disabledLooper.stop();
 			enabledLooper.start();
+			
+			mAutoModeExecuter = new AutoModeExecuter();
+            mAutoModeExecuter.setAutoMode(smartDashboardInteractions.getSelectedAutoMode());
+            mAutoModeExecuter.start();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw(t);
@@ -190,13 +217,17 @@ public class Robot extends IterativeRobot {
 						wheel.getWheelTurn(), wheel.leftBumper.isBeingPressed(), true));
 			}
 			
-			if(coDriver.rightBumper.wasPressed() || driverJoystick.bottomLeft.isBeingPressed()){
+			if(driverJoystick.bottomLeft.isBeingPressed()){
 				robot.ballIntake.forward();
-			}else if(coDriver.leftBumper.wasPressed()){
-				robot.ballIntake.reverse();
-			}else{
+			}/*else{
 				if(robot.ballIntake.isIntaking)
 				robot.ballIntake.stop();
+			}*/
+			
+			if(coDriver.rightBumper.wasPressed()){
+				robot.ballIntake.toggleForward();
+			}else if(coDriver.leftBumper.wasPressed()){
+				robot.ballIntake.reverse();
 			}
 			
 			if(coDriver.aButton.isBeingPressed() || driverJoystick.thumbButton.isBeingPressed()){
@@ -213,7 +244,7 @@ public class Robot extends IterativeRobot {
 				coDriver.rumble(2, 1);
 			}
 			
-			if((coDriver.rightTrigger.isBeingPressed() || (dyeRotorsCanTurnOn && robot.drive.isDoneWithTurn())) && !robot.dyeRotors.isFeeding()){
+			if(((coDriver.rightTrigger.isBeingPressed() && robot.shooter.isOnTarget()) || (dyeRotorsCanTurnOn && robot.drive.isDoneWithTurn())) && !robot.dyeRotors.isFeeding()){
 				robot.dyeRotors.startFeeding();
 				if(robot.shooter.getState() == Shooter.State.OverCompensate){
 					robot.shooter.setState(Shooter.State.SpinUp);
@@ -228,9 +259,10 @@ public class Robot extends IterativeRobot {
 				robot.shooter.setState(Shooter.State.OverCompensate);
 			}
 			
-			if(coDriver.yButton.isBeingPressed()){
+			if(coDriver.yButton.isBeingPressed() || driverJoystick.topRight.wasPressed()){
 				robot.dyeRotors.stopArms();
-				robot.dyeRotors.reverseRollers();
+				robot.dyeRotors.rollersForward();
+				robot.dyeRotors.slideFeederForward();
 				dyeRotorsCanTurnOn = false;
 			}else if(robot.shooter.isOnTarget()){
 				dyeRotorsCanTurnOn = true;
@@ -241,13 +273,14 @@ public class Robot extends IterativeRobot {
 			}
 			
 			if(coDriver.bButton.wasPressed()){
-				PathContainer pc = new StartToHopperBlue();
+				/*PathContainer pc = new StartToHopperBlue();
 				RobotState.getInstance().reset(Timer.getFPGATimestamp(), pc.getStartPose());
 				robot.pidgey.setAngle(pc.getStartPose().getRotation().getDegrees());
-				robot.drive.setWantDrivePath(pc.buildPath(), pc.isReversed());
+				robot.drive.setWantDrivePath(pc.buildPath(), pc.isReversed());*/
+				//robot.drive.setVelocitySetpoint(60, 60);
 			}
 			
-			if(coDriver.xButton.wasPressed()){
+			if(coDriver.xButton.wasPressed() || driverJoystick.topLeft.wasPressed()){
 				robot.drive.setWantDriveTowardsGoal();
 			}
 			

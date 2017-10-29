@@ -41,6 +41,7 @@ public class GearIntake extends Subsystem{
 		intakeMotor = new CANTalon(Ports.GEAR_INTAKE);
 		intakeMotor.setCurrentLimit(15);
 		intakeMotor.EnableCurrentLimit(true);
+		intakeMotor.setVoltageRampRate(48.0);
 		intakeMotor.setStatusFrameRateMs(StatusFrameRate.Feedback, 1000);
 		intakeMotor.changeControlMode(TalonControlMode.PercentVbus);
 		gearFlaps = new Solenoid(20, Ports.GEAR_FLAPS);
@@ -86,7 +87,7 @@ public class GearIntake extends Subsystem{
 					if(hasGear && timestamp - firstTimeGearSeen < 0.5){
 						intakeForward();
 					}else if(hasGear){
-						intakeMotor.set(-0.15);
+						intakeMotor.set(-0.07);
 					}else{
 						stopIntake();
 					}

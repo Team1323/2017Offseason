@@ -7,9 +7,9 @@ public class Constants {
 	public static final double kTrackWidthInches = 31.5;
     public static final double kTrackScrubFactor = 1.0;
 	
-	public static final double kShootingSpeed = 3100.0;
+	public static final double kShootingSpeed = 2835.0;
 	public static final double kShooterAllowableError = 100.0;//rpm
-	public static final double kOptimalShootingRange = 85.6;
+	public static final double kOptimalShootingRange = 87.8;
     
  // Goal tracker constants
     public static final double kMaxGoalTrackAge = 1.0;
@@ -31,9 +31,9 @@ public class Constants {
     
  // PID gains for drive velocity loop (HIGH GEAR)
     // Units: setpoint, error, and output are in inches per second.
-    public static double kDriveHighGearVelocityKp = 0.6;//1.2;
+    public static double kDriveHighGearVelocityKp = 1.0;//1.2;
     public static double kDriveHighGearVelocityKi = 0.0;
-    public static double kDriveHighGearVelocityKd = 144.0;
+    public static double kDriveHighGearVelocityKd = 100.0;//144.0;
     public static double kDriveHighGearVelocityKf = 1023.0/5190.0;
     public static int kDriveHighGearVelocityIZone = 0;
     public static double kDriveHighGearVelocityRampRate = 240.0;
@@ -60,7 +60,7 @@ public class Constants {
     public static double kDeltaLookAhead = kMaxLookAhead - kMinLookAhead;
     public static double kDeltaLookAheadSpeed = kMaxLookAheadSpeed - kMinLookAheadSpeed;
 
-    public static double kInertiaSteeringGain = 0.001;//0.0125; // angular velocity command is multiplied by this gain *
+    public static double kInertiaSteeringGain = 0.0005;//0.0005; // angular velocity command is multiplied by this gain *
                                                      // our speed
                                                      // in inches per sec
     public static double kSegmentCompletionTolerance = 0.1; // inches

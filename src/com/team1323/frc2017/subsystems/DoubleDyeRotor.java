@@ -29,36 +29,38 @@ public class DoubleDyeRotor extends Subsystem{
 		arm = new CANTalon(Ports.DYE_ARMS);
 		slideFeeder = new CANTalon(Ports.SLIDE_FEEDER);
 		
-		leftInner.setStatusFrameRateMs(StatusFrameRate.Feedback, 1000);
-		rightInner.setStatusFrameRateMs(StatusFrameRate.Feedback, 1000);
-		arm.setStatusFrameRateMs(StatusFrameRate.Feedback, 1000);
-		slideFeeder.setStatusFrameRateMs(StatusFrameRate.Feedback, 1000);
+		leftInner.setStatusFrameRateMs(StatusFrameRate.Feedback, 20);
+		rightInner.setStatusFrameRateMs(StatusFrameRate.Feedback, 20);
+		arm.setStatusFrameRateMs(StatusFrameRate.Feedback, 20);
+		slideFeeder.setStatusFrameRateMs(StatusFrameRate.Feedback, 20);
 		
 		leftInner.enableBrakeMode(false);
 		rightInner.enableBrakeMode(false);
 		arm.enableBrakeMode(false);
 		slideFeeder.enableBrakeMode(false);
 		
-		leftInner.changeControlMode(TalonControlMode.PercentVbus);
-		rightInner.changeControlMode(TalonControlMode.PercentVbus);
-		arm.changeControlMode(TalonControlMode.PercentVbus);
-		slideFeeder.changeControlMode(TalonControlMode.PercentVbus);
+		leftInner.changeControlMode(TalonControlMode.Voltage);
+		rightInner.changeControlMode(TalonControlMode.Voltage);
+		arm.changeControlMode(TalonControlMode.Voltage);
+		slideFeeder.changeControlMode(TalonControlMode.Voltage);
 		
-		leftInner.setVoltageRampRate(24.0);
-		rightInner.setVoltageRampRate(24.0);
-		arm.setVoltageRampRate(24.0);
-		slideFeeder.setVoltageRampRate(24.0);
+		leftInner.setVoltageRampRate(96.0);
+		rightInner.setVoltageRampRate(96.0);
+		arm.setVoltageRampRate(120.0);
+		slideFeeder.setVoltageRampRate(96.0);
 		
 		slideFeeder.setCurrentLimit(30);
 		slideFeeder.EnableCurrentLimit(true);
+		arm.setCurrentLimit(60);
+		arm.EnableCurrentLimit(true);
 	}
 	
 	public void rightRollerForward(){
-		rightInner.set(1.0);
+		rightInner.set(12.0);
 	}
 	
 	public void leftRollerForward(){
-		leftInner.set(-1.0);
+		leftInner.set(-12.0);
 	}
 	
 	public void rollersForward(){
@@ -68,16 +70,20 @@ public class DoubleDyeRotor extends Subsystem{
 	
 	public void reverseRollers(){
 		isFeeding = false;
-		rightInner.set(-1.0);
-		leftInner.set(1.0);
+		rightInner.set(-12.0);
+		leftInner.set(12.0);
 	}
 	
 	public void armsForward(){
-		arm.set(-1.0);
+		arm.set(-0.6*12.0);
+	}
+	
+	public void armsReversed(){
+		arm.set(12.0);
 	}
 	
 	public void slideFeederForward(){
-		slideFeeder.set(1.0);
+		slideFeeder.set(12.0);
 	}
 	
 	public void stopRollers(){
@@ -108,7 +114,7 @@ public class DoubleDyeRotor extends Subsystem{
 			leftRollerForward();
 			slideFeederForward();
 			try {
-				Thread.sleep(250);
+				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -134,15 +140,12 @@ public class DoubleDyeRotor extends Subsystem{
 	
 	@Override
 	public void outputToSmartDashboard(){
-		/*SmartDashboard.putNumber("Left Dye Roller Voltage", leftInner.getOutputVoltage());
+		SmartDashboard.putNumber("Left Dye Roller Voltage", leftInner.getOutputVoltage());
 		SmartDashboard.putNumber("Right Dye Roller Voltage", rightInner.getOutputVoltage());
 		SmartDashboard.putNumber("Dye Arm Voltage", arm.getOutputVoltage());
 		SmartDashboard.putNumber("Left Dye Roller Current", leftInner.getOutputCurrent());
 		SmartDashboard.putNumber("Right Dye Roller Current", rightInner.getOutputCurrent());
 		SmartDashboard.putNumber("Dye Arm Current", arm.getOutputCurrent());
 		SmartDashboard.putNumber("Slide Feeder Current", slideFeeder.getOutputCurrent());
-		if(slideFeeder.getOutputCurrent() > 0.5){
-		System.out.println(slideFeeder.getOutputCurrent());
-		}*/
 	}
 }
