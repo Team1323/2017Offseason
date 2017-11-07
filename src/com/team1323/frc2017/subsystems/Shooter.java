@@ -8,6 +8,7 @@ import com.team1323.frc2017.Ports;
 import com.team1323.frc2017.loops.Loop;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Shooter extends Subsystem{
@@ -30,8 +31,9 @@ public class Shooter extends Subsystem{
 		leftMaster.SetVelocityMeasurementWindow(32);
 		leftMaster.reverseOutput(false);
 		leftMaster.reverseSensor(false);
-		leftMaster.setPID(4.0, 0.00, 40.0, 0.0285, 0, 0.0, 0);
-		leftMaster.setPID(8.0, 0.0, 0.0, 0.028, 0, 0.0, 1);
+		leftMaster.setPID(8.0, 0.0, 0.0, 0.028, 0, 0.0, 0);
+		leftMaster.setPID(8.0, 0.0, 225.0, 0.015, 0, 0.0, 1);
+		//leftMaster.setPID(0.4, 0.0, 10.0, 0.02, 0, 0.0, 1);//0.026
 		leftMaster.setProfile(1);
 		leftMaster.configNominalOutputVoltage(+0f, -0f);
 		leftMaster.configPeakOutputVoltage(+12f, -0f);
@@ -72,7 +74,11 @@ public class Shooter extends Subsystem{
 	}
 	public void setState(State newState){
 		currentState = newState;
+		stateStartTime = Timer.getFPGATimestamp();
 	}
+	private double stateStartTime = 0.0;
+	
+	private int cyclesOnTarget = 0;
 	
 	private final Loop shooterLoop = new Loop(){
 		@Override
@@ -90,20 +96,25 @@ public class Shooter extends Subsystem{
 					break;
 				case OverCompensate:
 					leftMaster.setVoltageRampRate(240.0);
-					setSpeed(Constants.kShootingSpeed + 300);
+					setSpeed(Constants.kShootingSpeed + 100);
 					break;
 				case SpinUp:
-					leftMaster.setVoltageRampRate(60.0);
-					setSpeed(Constants.kShootingSpeed);
-					if(isOnTarget())setState(State.Hold);
+					leftMaster.setVoltageRampRate(0.0);//60.0);
+					if(timestamp - stateStartTime <= 2.0){
+						setSpeed(Constants.kShootingSpeed + 100);
+						System.out.println("Overshooting");
+					}else{
+						setSpeed(Constants.kShootingSpeed);
+					}
+					//if(isOnTarget())setState(State.Hold);
 					break;
 				case Hold:
 					leftMaster.setVoltageRampRate(0.0);
-					if(Constants.kShootingSpeed - leftMaster.getSpeed() >= Constants.kShooterAllowableError){
+					/*if(Constants.kShootingSpeed - leftMaster.getSpeed() >= Constants.kShooterAllowableError){
 						setSpeed(Constants.kShootingSpeed + 50);
 					}else if(Constants.kShootingSpeed - leftMaster.getSpeed() <= -25){
 						setSpeed(Constants.kShootingSpeed);
-					}
+					}*/
 					break;
 				}
 			}
@@ -135,8 +146,16 @@ public class Shooter extends Subsystem{
 	}
 	
 	public boolean isOnTarget(){
-		return leftMaster.getControlMode() == CANTalon.TalonControlMode.Speed &&
-				Math.abs(getError()) < Constants.kShooterAllowableError;
+		if(leftMaster.getControlMode() == CANTalon.TalonControlMode.Speed &&
+				Math.abs(getError()) < Constants.kShooterAllowableError){
+			cyclesOnTarget++;
+			if(cyclesOnTarget >= 3){
+				return true;
+			}
+		}else{
+			cyclesOnTarget = 0;
+		}
+		return false;
 	}
 	
 	public boolean isShooting(){
@@ -165,5 +184,6 @@ public class Shooter extends Subsystem{
 		SmartDashboard.putNumber("Shooter Slave 1 Current", leftSlave.getOutputCurrent());
 		SmartDashboard.putNumber("Shooter Slave 2 Current", rightSlave1.getOutputCurrent());
 		SmartDashboard.putNumber("Shooter Slave 3 Current", rightSlave2.getOutputCurrent());
+		SmartDashboard.putNumber("Shooter Setpoint", leftMaster.getSetpoint());
 	}
 }

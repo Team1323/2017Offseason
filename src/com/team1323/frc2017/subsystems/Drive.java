@@ -24,6 +24,11 @@ import com.team254.lib.util.math.Twist2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import jaci.pathfinder.Pathfinder;
+import jaci.pathfinder.Trajectory;
+import jaci.pathfinder.Waypoint;
+import jaci.pathfinder.followers.DistanceFollower;
+import jaci.pathfinder.modifiers.TankModifier;
 
 public class Drive extends Subsystem{
 	private final CANTalon leftMaster, leftSlave, rightMaster, rightSlave;
@@ -51,7 +56,8 @@ public class Drive extends Subsystem{
         DRIVE_TOWARDS_GOAL_COARSE_ALIGN, // turn to face the boiler, then DRIVE_TOWARDS_GOAL_COARSE_ALIGN
         DRIVE_TOWARDS_GOAL_APPROACH, // drive forwards until we are at optimal shooting distance
         MOVE_DISTANCE,
-        BLIND_TURN
+        BLIND_TURN,
+        PATHFINDER
     }
 
     /**
@@ -101,6 +107,20 @@ public class Drive extends Subsystem{
     public boolean isApproaching() {
         return mIsApproaching;
     }
+    
+    Trajectory.Config config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC, Trajectory.Config.SAMPLES_FAST, 0.01, 10.0, 10.0, 80);
+    Trajectory.Config fastConfig = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC, Trajectory.Config.SAMPLES_LOW, 0.01, 13.0, 13.0, 80);
+    public Trajectory blueHopperTrajectory;
+    public Trajectory redHopperTrajectory;
+    public Trajectory leftPegTrajectory;
+    public Trajectory rightPegTrajectory;
+    public Trajectory pegToBlueHopperTrajectory;
+    public Trajectory pegToRedHopperTrajectory;
+    public Trajectory currentTrajectory;
+    DistanceFollower leftFollower;
+    DistanceFollower rightFollower;
+    boolean pathFollowingReversed = false;
+    boolean useHeadingCorrection = false;
 	
 	private static Drive instance = null;
 	
@@ -168,8 +188,49 @@ public class Drive extends Subsystem{
 		pidgey = Pigeon.getInstance();
 		
 		reloadGains();
+		generatePaths();
 		
 		setOpenLoop(DriveSignal.NEUTRAL);
+	}
+	
+	public void generatePaths(){
+		Waypoint[] blueHopperPoints = new Waypoint[]{
+				new Waypoint(0,0,0),
+				new Waypoint(6.0, 4.0, Pathfinder.d2r(90))
+		};
+		blueHopperTrajectory = Pathfinder.generate(blueHopperPoints, fastConfig);
+		Waypoint[] redHopperPoints = new Waypoint[]{
+				new Waypoint(0,0,0),
+				new Waypoint(6.0, -4.0, Pathfinder.d2r(-90))
+		};
+		redHopperTrajectory = Pathfinder.generate(redHopperPoints, fastConfig);
+		
+		double straightDistance = 0.5;
+		double pegForwardDistance = 8.5;
+		double pegSideDistance = -3.0;
+		Waypoint[] leftPegPoints = new Waypoint[]{
+				new Waypoint(0,0,0),
+				new Waypoint(pegForwardDistance - (straightDistance/2), pegSideDistance + (straightDistance/2*Math.sqrt(3)), Pathfinder.d2r(-60)),
+				new Waypoint(pegForwardDistance, pegSideDistance, Pathfinder.d2r(-60))
+		};
+		leftPegTrajectory = Pathfinder.generate(leftPegPoints, config);
+		Waypoint[] rightPegPoints = new Waypoint[]{
+				new Waypoint(0,0,0),
+				new Waypoint(pegForwardDistance - (straightDistance/2), -pegSideDistance - (straightDistance/2*Math.sqrt(3)), Pathfinder.d2r(60)),
+				new Waypoint(pegForwardDistance, -pegSideDistance, Pathfinder.d2r(60))
+		};
+		rightPegTrajectory = Pathfinder.generate(rightPegPoints, config);
+		
+		Waypoint[] pegToBlueHopperPoints = new Waypoint[]{
+				new Waypoint(0,0,Pathfinder.d2r(-60)),
+				new Waypoint(1.0, -8.0, Pathfinder.d2r(-90))
+		};
+		pegToBlueHopperTrajectory = Pathfinder.generate(pegToBlueHopperPoints, fastConfig);
+		Waypoint[] pegToRedHopperPoints = new Waypoint[]{
+				new Waypoint(0,0,Pathfinder.d2r(60)),
+				new Waypoint(1.0, 8.0, Pathfinder.d2r(90))
+		};
+		pegToRedHopperTrajectory = Pathfinder.generate(pegToRedHopperPoints, fastConfig);
 	}
 	
 	private final Loop loop = new Loop(){
@@ -209,6 +270,9 @@ public class Drive extends Subsystem{
                 case DRIVE_TOWARDS_GOAL_APPROACH:
                     updateDriveTowardsGoalApproach(timestamp);
                     return;
+                case PATHFINDER:
+                	updatePathfinder();
+                	return;
                 default:
                     System.out.println("Unexpected drive control state: " + mDriveControlState);
                     break;
@@ -318,6 +382,16 @@ public class Drive extends Subsystem{
             rightMaster.setAllowableClosedLoopErr(0);
             setBrakeMode(true);
         }
+    }
+    
+    private void configureTalonsForVoltageControl(){
+    	leftMaster.changeControlMode(TalonControlMode.Voltage);
+		rightMaster.changeControlMode(TalonControlMode.Voltage);
+		leftMaster.configNominalOutputVoltage(0.0, 0.0);
+        rightMaster.configNominalOutputVoltage(0.0, 0.0);
+        leftMaster.setVoltageRampRate(240.0);
+        rightMaster.setVoltageRampRate(240.0);
+        setBrakeMode(true);
     }
     
     private synchronized void updateVelocitySetpoint(double left_inches_per_sec, double right_inches_per_sec) {
@@ -438,7 +512,7 @@ public class Drive extends Subsystem{
             if (aim.isPresent()) {
                 final double distance = aim.get().getRange();
 
-                if (Math.abs(distance - Constants.kOptimalShootingRange) < 1.0) {
+                if (Math.abs(distance - Constants.kOptimalShootingRange) < 0.5) {
                     // Don't drive, just shoot.
                     mDriveControlState = DriveControlState.AIM_TO_GOAL;
                     mIsApproaching = false;
@@ -494,6 +568,31 @@ public class Drive extends Subsystem{
             updateVelocitySetpoint(0, 0);
         }
     }
+    
+    private void updatePathfinder(){
+    	double left = 0;
+    	double right = 0;
+    	if(pathFollowingReversed){
+    		left = leftFollower.calculate(-getRightDistanceInches()/12);
+	    	right = rightFollower.calculate(-getLeftDistanceInches()/12);
+    	}else{
+	    	left = leftFollower.calculate(getLeftDistanceInches()/12);
+	    	right = rightFollower.calculate(getRightDistanceInches()/12);
+    	}
+    	double turn = 0;
+    	double headingError = Pathfinder.boundHalfDegrees(Pathfinder.r2d(leftFollower.getHeading()) - pidgey.getAngle());
+    	if(useHeadingCorrection){
+    		turn = 0.8 * (-1.0/80.0) * headingError;
+    	}
+    	if(pathFollowingReversed){
+    		setLeftRightPower((-right + turn)*12.0, (-left - turn)*12.0);
+    	}else{
+    		setLeftRightPower((left - turn)*12.0, (right + turn)*12.0);
+    	}
+    	if(leftFollower.isFinished() && rightFollower.isFinished()){
+    		setOpenLoop(DriveSignal.NEUTRAL);
+    	}
+    }
 
     public synchronized boolean isOnTarget() {
         return mIsOnTarget;
@@ -546,6 +645,25 @@ public class Drive extends Subsystem{
         }
     }
     
+    public synchronized void setWantFollowPathfinder(Trajectory trajectory, boolean reversed, boolean useHeadingCorrection){
+    	configureTalonsForVoltageControl();
+    	TankModifier modifier = new TankModifier(trajectory);
+    	modifier.modify(Constants.kTrackWidthInches/12);
+    	leftFollower = new DistanceFollower(modifier.getLeftTrajectory());
+    	rightFollower = new DistanceFollower(modifier.getRightTrajectory());
+    	double p = 0.8;
+		double d = 0.0;
+		double v = 1/(13);
+		double a = 0.0;
+		leftFollower.configurePIDVA(p, 0.0, d, v, a);
+		rightFollower.configurePIDVA(p, 0.0, d, v, a);
+		zeroSensors();
+		pathFollowingReversed = reversed;
+		this.useHeadingCorrection = useHeadingCorrection;
+		currentTrajectory = trajectory;
+		setState(DriveControlState.PATHFINDER);
+    }
+    
     /**
      * Configures the drivebase to drive a path. Used for autonomous driving
      * 
@@ -588,6 +706,12 @@ public class Drive extends Subsystem{
             System.out.println("Robot is not in path following mode");
         }
     }
+    
+    public synchronized boolean isDoneWithPathfinder(double percentCompleted){
+		return (mDriveControlState == DriveControlState.PATHFINDER && 
+				((rightFollower.getSegment().position >= (percentCompleted * currentTrajectory.get(currentTrajectory.length()-1).position)) ||
+				(leftFollower.getSegment().position >= (percentCompleted * currentTrajectory.get(currentTrajectory.length()-1).position))));
+	}
 
     public synchronized boolean isDoneWithTurn() {
         if (mDriveControlState == DriveControlState.AIM_TO_GOAL || 
@@ -601,7 +725,7 @@ public class Drive extends Subsystem{
     
     public synchronized boolean distanceIsOnTarget(){
     	return usesTalonPositionControl(mDriveControlState) && 
-    			Math.abs(leftMaster.getSetpoint() - leftMaster.getPosition()) < 1.0;
+    			Math.abs(rotationsToInches(leftMaster.getSetpoint() - leftMaster.getPosition())) < 1.0;
     	}
 
     public synchronized boolean hasPassedMarker(String marker) {

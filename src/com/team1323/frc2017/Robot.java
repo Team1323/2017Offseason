@@ -184,6 +184,7 @@ public class Robot extends IterativeRobot {
 		try{
 			stopAll();
 			outputAllToSmartDashboard();
+			smartDashboardInteractions.output();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw(t);
@@ -240,11 +241,18 @@ public class Robot extends IterativeRobot {
 				robot.gearIntake.score();
 			}
 			
+			if(driverJoystick.topRight.isBeingPressed()){
+				robot.gearIntake.setState(GearIntake.State.REVERSED);
+			}else if(robot.gearIntake.getState() == GearIntake.State.REVERSED){
+				robot.gearIntake.setState(GearIntake.State.HOLDING);
+			}
+			
 			if(robot.gearIntake.needsToNotify()){
 				coDriver.rumble(2, 1);
 			}
 			
 			if(((coDriver.rightTrigger.isBeingPressed() && robot.shooter.isOnTarget()) || (dyeRotorsCanTurnOn && robot.drive.isDoneWithTurn())) && !robot.dyeRotors.isFeeding()){
+				robot.drive.setOpenLoop(DriveSignal.NEUTRAL);
 				robot.dyeRotors.startFeeding();
 				if(robot.shooter.getState() == Shooter.State.OverCompensate){
 					robot.shooter.setState(Shooter.State.SpinUp);
@@ -259,7 +267,7 @@ public class Robot extends IterativeRobot {
 				robot.shooter.setState(Shooter.State.OverCompensate);
 			}
 			
-			if(coDriver.yButton.isBeingPressed() || driverJoystick.topRight.wasPressed()){
+			if(coDriver.yButton.isBeingPressed()){
 				robot.dyeRotors.stopArms();
 				robot.dyeRotors.rollersForward();
 				robot.dyeRotors.slideFeederForward();
@@ -277,7 +285,9 @@ public class Robot extends IterativeRobot {
 				RobotState.getInstance().reset(Timer.getFPGATimestamp(), pc.getStartPose());
 				robot.pidgey.setAngle(pc.getStartPose().getRotation().getDegrees());
 				robot.drive.setWantDrivePath(pc.buildPath(), pc.isReversed());*/
-				//robot.drive.setVelocitySetpoint(60, 60);
+				robot.pidgey.setAngle(-60);
+				robot.drive.setWantFollowPathfinder(robot.drive.pegToBlueHopperTrajectory, false, false);
+				//robot.drive.setPositionSetpoint(Rotation2d.fromDegrees(90));
 			}
 			
 			if(coDriver.xButton.wasPressed() || driverJoystick.topLeft.wasPressed()){

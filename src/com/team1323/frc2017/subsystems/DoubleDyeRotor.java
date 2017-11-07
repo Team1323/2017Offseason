@@ -46,7 +46,7 @@ public class DoubleDyeRotor extends Subsystem{
 		
 		leftInner.setVoltageRampRate(96.0);
 		rightInner.setVoltageRampRate(96.0);
-		arm.setVoltageRampRate(120.0);
+		arm.setVoltageRampRate(12.0);
 		slideFeeder.setVoltageRampRate(96.0);
 		
 		slideFeeder.setCurrentLimit(30);
@@ -75,7 +75,7 @@ public class DoubleDyeRotor extends Subsystem{
 	}
 	
 	public void armsForward(){
-		arm.set(-0.6*12.0);
+		arm.set(-1*12.0);
 	}
 	
 	public void armsReversed(){
@@ -110,11 +110,17 @@ public class DoubleDyeRotor extends Subsystem{
 		public void run(){
 			isInThread = true;
 			isFeeding = true;
-			rightRollerForward();
-			leftRollerForward();
 			slideFeederForward();
 			try {
-				Thread.sleep(500);
+				Thread.sleep(250);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			rightRollerForward();
+			leftRollerForward();
+			try {
+				Thread.sleep(250);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

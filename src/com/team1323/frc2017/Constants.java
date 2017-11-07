@@ -7,9 +7,9 @@ public class Constants {
 	public static final double kTrackWidthInches = 31.5;
     public static final double kTrackScrubFactor = 1.0;
 	
-	public static final double kShootingSpeed = 2835.0;
+	public static final double kShootingSpeed = 2725.0;
 	public static final double kShooterAllowableError = 100.0;//rpm
-	public static final double kOptimalShootingRange = 87.8;
+	public static final double kOptimalShootingRange = 85.5;
     
  // Goal tracker constants
     public static final double kMaxGoalTrackAge = 1.0;
@@ -20,7 +20,7 @@ public class Constants {
     
  // Pose of the camera frame w.r.t. the robot frame
     public static final double kCameraXOffset = 0.0;
-    public static final double kCameraYOffset = 0.0;
+    public static final double kCameraYOffset = -2.5;
     public static final double kCameraZOffset = 22.75;
     public static final double kCameraPitchAngleDegrees = 90-58.5;
     public static final double kCameraYawAngleDegrees = 0.0;
@@ -40,14 +40,14 @@ public class Constants {
     public static double kDriveHighGearNominalOutput = 0.5;
     public static double kDriveHighGearMaxSetpoint = 13.5 * 12.0; // 13.5 fps
     
-    public static final double kDriveLowGearPositionKp = 0.8;
-    public static final double kDriveLowGearPositionKi = 0.002;
-    public static final double kDriveLowGearPositionKd = 254.0;
+    public static final double kDriveLowGearPositionKp = 0.6;
+    public static final double kDriveLowGearPositionKi = 0.004;
+    public static final double kDriveLowGearPositionKd = 150.0;
     public static final double kDriveLowGearPositionKf = 1023.0/5190.0;
     public static final int kDriveLowGearPositionIZone = 300;
     public static final double kDriveLowGearPositionRampRate = 240.0; // V/s
     public static final double kDriveLowGearNominalOutput = 0.5; // V
-    public static final double kDriveLowGearMaxVelocity = 10.0 * 12.0 * 60.0 / (Math.PI * kDriveWheelDiameterInches); // 10 fps
+    public static final double kDriveLowGearMaxVelocity = 8.0 * 12.0 * 60.0 / (Math.PI * kDriveWheelDiameterInches); // 10 fps
                                                                                                                // in RPM
     public static final double kDriveLowGearMaxAccel = 18.0 * 12.0 * 60.0 / (Math.PI * kDriveWheelDiameterInches); // 18 fps/s
                                                                                                              // in RPM/s

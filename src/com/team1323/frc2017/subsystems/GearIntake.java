@@ -49,7 +49,7 @@ public class GearIntake extends Subsystem{
 	}
 	
 	public enum State{
-		INTAKING, HOLDING, SCORING, IDLE
+		INTAKING, HOLDING, SCORING, IDLE, REVERSED
 	}
 	private State currentState = State.HOLDING;
 	private double stateStartTime = Double.POSITIVE_INFINITY;
@@ -98,6 +98,9 @@ public class GearIntake extends Subsystem{
 				case IDLE:
 					stopIntake();
 					extendGearFlaps();
+					break;
+				case REVERSED:
+					intakeReverse();
 					break;
 				default:
 					break;

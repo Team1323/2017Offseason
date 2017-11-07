@@ -29,7 +29,6 @@ public class TurnToHeadingAction implements Action {
 
     @Override
     public void start() {
-        //mDrive.setWantTurnToHeading(mTargetHeading);
     	mDrive.setPositionSetpoint(mTargetHeading);
     }
 }

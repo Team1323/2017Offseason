@@ -1,7 +1,9 @@
 package com.team1323.frc2017.auto;
 
+import com.team1323.frc2017.auto.modes.BlueGearAndHopperMode;
 import com.team1323.frc2017.auto.modes.BlueHopperMode;
 import com.team1323.frc2017.auto.modes.BlueMiddleGearAndShootMode;
+import com.team1323.frc2017.auto.modes.RedGearAndHopperMode;
 import com.team1323.frc2017.auto.modes.RedHopperMode;
 import com.team1323.frc2017.auto.modes.RedMiddleGearAndShootMode;
 import com.team1323.frc2017.auto.modes.StandStillMode;
@@ -25,6 +27,7 @@ public class SmartDashboardInteractions {
     	modeChooser = new SendableChooser();
     	modeChooser.addDefault("Hopper", DEFAULT_MODE);
     	modeChooser.addObject("Middle Gear", AutoOption.MIDDLE_GEAR);
+    	modeChooser.addObject("Gear and Hopper", AutoOption.GEAR_AND_HOPPER);
     	sideChooser = new SendableChooser();
     	sideChooser.addDefault("Blue", DEFAULT_SIDE);
     	sideChooser.addObject("Red", AutoSide.RED);
@@ -54,6 +57,7 @@ public class SmartDashboardInteractions {
     enum AutoOption{
     	HOPPER("Hopper"),
     	MIDDLE_GEAR("Middle Gear"),
+    	GEAR_AND_HOPPER("Gear and Hopper"),
     	STAND_STILL("Stand Still");
     	
     	public final String name;
@@ -86,6 +90,12 @@ public class SmartDashboardInteractions {
     				return new BlueMiddleGearAndShootMode();
     			}else{
     				return new RedMiddleGearAndShootMode();
+    			}
+    		case GEAR_AND_HOPPER:
+    			if(side == AutoSide.BLUE){
+    				return new BlueGearAndHopperMode();
+    			}else{
+    				return new RedGearAndHopperMode();
     			}
     		case STAND_STILL: // fallthrough
             default:

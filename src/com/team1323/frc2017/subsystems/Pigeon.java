@@ -3,6 +3,7 @@ package com.team1323.frc2017.subsystems;
 import com.ctre.PigeonImu;
 import com.ctre.PigeonImu.PigeonState;
 import com.team1323.frc2017.loops.Loop;
+import com.team1323.lib.util.Util;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -87,7 +88,7 @@ public class Pigeon {
 		System.out.println("Pigeon Angle Set");
 	}
 	public void outputToSmartDashboard(){
-		SmartDashboard.putNumber(" Heading Angle ", getAngle());
+		SmartDashboard.putNumber(" Heading Angle ", Util.boundAngleNeg180to180Degrees(getAngle()));
 		SmartDashboard.putNumber(" Pigeon Rate ", getAngularRate());
 		SmartDashboard.putBoolean(" Pigeon Good ", isGood());
 		//SmartDashboard.putNumber("Pigeon Temp", pidgey.GetTemp());
