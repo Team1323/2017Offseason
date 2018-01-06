@@ -75,7 +75,7 @@ public class DoubleDyeRotor extends Subsystem{
 	}
 	
 	public void armsForward(){
-		arm.set(-1*12.0);
+		arm.set(-0.8*12.0);
 	}
 	
 	public void armsReversed(){

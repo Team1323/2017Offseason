@@ -95,13 +95,13 @@ public class Shooter extends Subsystem{
 					setOpenLoop(0.0);
 					break;
 				case OverCompensate:
-					leftMaster.setVoltageRampRate(240.0);
-					setSpeed(Constants.kShootingSpeed + 100);
+					leftMaster.setVoltageRampRate(0.0);
+					setSpeed(Constants.kShootingSpeed + 75);
 					break;
 				case SpinUp:
 					leftMaster.setVoltageRampRate(0.0);//60.0);
 					if(timestamp - stateStartTime <= 2.0){
-						setSpeed(Constants.kShootingSpeed + 100);
+						setSpeed(Constants.kShootingSpeed + 75);
 						System.out.println("Overshooting");
 					}else{
 						setSpeed(Constants.kShootingSpeed);

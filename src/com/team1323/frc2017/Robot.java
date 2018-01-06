@@ -285,8 +285,8 @@ public class Robot extends IterativeRobot {
 				RobotState.getInstance().reset(Timer.getFPGATimestamp(), pc.getStartPose());
 				robot.pidgey.setAngle(pc.getStartPose().getRotation().getDegrees());
 				robot.drive.setWantDrivePath(pc.buildPath(), pc.isReversed());*/
-				robot.pidgey.setAngle(-60);
-				robot.drive.setWantFollowPathfinder(robot.drive.pegToBlueHopperTrajectory, false, false);
+				robot.pidgey.setAngle(0);
+				robot.drive.setWantFollowPathfinder(robot.drive.blueMiddlePegToShootTrajectory, false, false);
 				//robot.drive.setPositionSetpoint(Rotation2d.fromDegrees(90));
 			}
 			

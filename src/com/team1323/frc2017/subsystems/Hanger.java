@@ -36,8 +36,8 @@ public class Hanger extends Subsystem{
 	}
 	
 	public void hang(){
-		motor1.set(1.0);
-		motor2.set(1.0);
+		motor1.set(0.8);
+		motor2.set(0.8);
 	}
 	
 	@Override

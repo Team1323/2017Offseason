@@ -21,7 +21,7 @@ public class PathfinderAction implements Action{
 	
 	@Override
 	public boolean isFinished(){
-		return !waitForCompletion || drive.isDoneWithPathfinder(0.98);
+		return !waitForCompletion || drive.isDoneWithPathfinder();
 	}
 	
 	@Override

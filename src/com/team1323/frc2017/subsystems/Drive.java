@@ -109,13 +109,16 @@ public class Drive extends Subsystem{
     }
     
     Trajectory.Config config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC, Trajectory.Config.SAMPLES_FAST, 0.01, 10.0, 10.0, 80);
-    Trajectory.Config fastConfig = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC, Trajectory.Config.SAMPLES_LOW, 0.01, 13.0, 13.0, 80);
+    Trajectory.Config fastConfig = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC, Trajectory.Config.SAMPLES_LOW, 0.01, 15.0, 15.0, 80);
     public Trajectory blueHopperTrajectory;
     public Trajectory redHopperTrajectory;
     public Trajectory leftPegTrajectory;
     public Trajectory rightPegTrajectory;
     public Trajectory pegToBlueHopperTrajectory;
     public Trajectory pegToRedHopperTrajectory;
+    public Trajectory middlePegTrajectory;
+    public Trajectory redMiddlePegToShootTrajectory;
+    public Trajectory blueMiddlePegToShootTrajectory;
     public Trajectory currentTrajectory;
     DistanceFollower leftFollower;
     DistanceFollower rightFollower;
@@ -196,12 +199,12 @@ public class Drive extends Subsystem{
 	public void generatePaths(){
 		Waypoint[] blueHopperPoints = new Waypoint[]{
 				new Waypoint(0,0,0),
-				new Waypoint(6.0, 4.0, Pathfinder.d2r(90))
+				new Waypoint(6.0, 5.5, Pathfinder.d2r(95))
 		};
 		blueHopperTrajectory = Pathfinder.generate(blueHopperPoints, fastConfig);
 		Waypoint[] redHopperPoints = new Waypoint[]{
 				new Waypoint(0,0,0),
-				new Waypoint(6.0, -4.0, Pathfinder.d2r(-90))
+				new Waypoint(6.0, -5.5, Pathfinder.d2r(-95))
 		};
 		redHopperTrajectory = Pathfinder.generate(redHopperPoints, fastConfig);
 		
@@ -231,6 +234,23 @@ public class Drive extends Subsystem{
 				new Waypoint(1.0, 8.0, Pathfinder.d2r(90))
 		};
 		pegToRedHopperTrajectory = Pathfinder.generate(pegToRedHopperPoints, fastConfig);
+		
+		Waypoint[] middlePegPoints = new Waypoint[]{
+			new Waypoint(0,0,0),
+			new Waypoint(75.0/12.0, 0, 0)
+		};
+		middlePegTrajectory = Pathfinder.generate(middlePegPoints, config);
+		Waypoint[] blueMiddlePegToShootPoints = new Waypoint[]{
+				new Waypoint(0,0,0),
+				new Waypoint(2.0, -6.5, Pathfinder.d2r(-60))
+			};
+		blueMiddlePegToShootTrajectory = Pathfinder.generate(blueMiddlePegToShootPoints, config);
+		Waypoint[] redMiddlePegToShootPoints = new Waypoint[]{
+				new Waypoint(0,0,0),
+				new Waypoint(2.0, 6.5, Pathfinder.d2r(60))
+			};
+		redMiddlePegToShootTrajectory = Pathfinder.generate(redMiddlePegToShootPoints, config);
+		
 	}
 	
 	private final Loop loop = new Loop(){
@@ -345,7 +365,7 @@ public class Drive extends Subsystem{
 	 /**
      * Configures talons for velocity control
      */
-    private void configureTalonsForSpeedControl() {
+    public void configureTalonsForSpeedControl() {
         if (!usesTalonVelocityControl(mDriveControlState)) {
             // We entered a velocity control state.
             leftMaster.changeControlMode(CANTalon.TalonControlMode.Speed);
@@ -365,7 +385,7 @@ public class Drive extends Subsystem{
     /**
      * Configures talons for position control
      */
-    private void configureTalonsForPositionControl() {
+    public void configureTalonsForPositionControl() {
         if (!usesTalonPositionControl(mDriveControlState)) {
             // We entered a position control state.
             leftMaster.changeControlMode(CANTalon.TalonControlMode.MotionMagic);
@@ -384,7 +404,7 @@ public class Drive extends Subsystem{
         }
     }
     
-    private void configureTalonsForVoltageControl(){
+    public void configureTalonsForVoltageControl(){
     	leftMaster.changeControlMode(TalonControlMode.Voltage);
 		rightMaster.changeControlMode(TalonControlMode.Voltage);
 		leftMaster.configNominalOutputVoltage(0.0, 0.0);
@@ -705,6 +725,10 @@ public class Drive extends Subsystem{
         } else {
             System.out.println("Robot is not in path following mode");
         }
+    }
+    
+    public synchronized boolean isDoneWithPathfinder(){
+    	return (rightFollower.isFinished() && leftFollower.isFinished());
     }
     
     public synchronized boolean isDoneWithPathfinder(double percentCompleted){
